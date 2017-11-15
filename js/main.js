@@ -2,7 +2,7 @@
 var WIDTH = 360;
 var HEIGHT = 256;
 
-var game = new Phaser.Game(WIDTH, HEIGHT, Phaser.CANVAS, 'game');
+var game = new Phaser.Game(WIDTH, 340, Phaser.CANVAS, 'game');
 
 game.States = {};
 
@@ -33,7 +33,11 @@ game.States.preload = function() {
     game.load.spritesheet('man', 'assets/man-small.png', 16, 16, 10);
     game.load.spritesheet('mystery', 'assets/mystery.png', 16, 16, 4);
     game.load.spritesheet('monster', 'assets/monster.png', 16, 16, 2);
+    game.load.spritesheet('grass', 'assets/grass.png', 32, 16, 3);
+    game.load.spritesheet('flag', 'assets/flag.png', 16, 16, 4);
     game.load.image('wall', 'assets/wall.bmp');
+    game.load.image('monsterDead', 'assets/monster-dead.png');
+    game.load.image('manDead', 'assets/man-dead.png');
     game.load.spritesheet('left', 'assets/left.png', 40, 40, 2);
     game.load.spritesheet('right', 'assets/right.png', 40, 40, 2);
     game.load.spritesheet('up', 'assets/up.png', 40, 40, 2);
@@ -55,7 +59,7 @@ game.States.main = function() {
     // 开始按钮
     this.startbutton = game.add.button(70, 200, 'startbutton', this.onStartClick, this, 1, 1, 0);
     // 背景音乐
-    this.normalback = game.add.audio('startBGM', 0.2, true);
+    this.normalback = game.add.audio('startBGM', 0.1, true);
     this.normalback.play();
   };
   this.onStartClick = function() {
@@ -88,6 +92,7 @@ game.States.start = function() {
     this.layer.resizeWorld();
 
     // 地图资源
+    // 问号箱
     this.mysteries = game.add.group();
     this.mysteries.enableBody = true;
     this.mystery = [];
@@ -110,6 +115,29 @@ game.States.start = function() {
       this.mystery[i].animations.add('flashing',[0,1,2,3],3,true);
     }
 
+    // 草
+    this.grass = [];
+    this.grass[0] = game.add.sprite(22*16, 13*16, 'grass');
+    this.grass[1] = game.add.sprite(41*16, 13*16, 'grass');
+    this.grass[2] = game.add.sprite(42*16, 13*16, 'grass');
+    this.grass[3] = game.add.sprite(65*16, 13*16, 'grass');
+    this.grass[4] = game.add.sprite(71*16, 13*16, 'grass');
+    this.grass[5] = game.add.sprite(89*16, 13*16, 'grass');
+    this.grass[6] = game.add.sprite(113*16, 13*16, 'grass');
+    this.grass[7] = game.add.sprite(114*16, 13*16, 'grass');
+    this.grass[8] = game.add.sprite(138*16, 13*16, 'grass');
+    this.grass[9] = game.add.sprite(159*16, 13*16, 'grass');
+    this.grass[10] = game.add.sprite(166*16, 13*16, 'grass');
+    this.grass[11] = game.add.sprite(191*16, 13*16, 'grass');
+    for (var i = this.grass.length - 1; i >= 0; i--) {
+      this.grass[i].animations.add('move', [0,1,2], 10, true);
+    }
+
+    // 旗子
+    this.flag = game.add.sprite(198*16+9, 3*16+8, 'flag');
+    this.flag.animations.add('move', [0,1,2,3], 12, true);
+
+
     // 人物
     this.man = game.add.sprite(50, HEIGHT - 64, 'man');
     game.physics.arcade.enable(this.man);
@@ -131,24 +159,24 @@ game.States.start = function() {
 
 
     // 创建虚拟按键
-    var buttonleft = game.add.button(10, HEIGHT - 25, 'left', null, this, 1, 0, 1, 0);
-    buttonleft.scale.setTo(1, 0.7);
+    var buttonleft = game.add.button(10, HEIGHT + 10, 'left', null, this, 1, 0, 1, 0);
+    buttonleft.scale.setTo(1.4, 1.4);
     buttonleft.fixedToCamera = true;
     buttonleft.events.onInputOver.add(function(){arrowLeft=true;});
     buttonleft.events.onInputOut.add(function(){arrowLeft=false;});
     buttonleft.events.onInputDown.add(function(){arrowLeft=true;});
     buttonleft.events.onInputUp.add(function(){arrowLeft=false;});
 
-    var buttonright = game.add.button(60, HEIGHT - 25, 'right', null, this, 1, 0, 1, 0);
-    buttonright.scale.setTo(1, 0.7);
+    var buttonright = game.add.button(90, HEIGHT + 10, 'right', null, this, 1, 0, 1, 0);
+    buttonright.scale.setTo(1.4, 1.4);
     buttonright.fixedToCamera = true;
     buttonright.events.onInputOver.add(function(){arrowRight=true;});
     buttonright.events.onInputOut.add(function(){arrowRight=false;});
     buttonright.events.onInputDown.add(function(){arrowRight=true;});
     buttonright.events.onInputUp.add(function(){arrowRight=false;});
 
-    var buttonup = game.add.button(WIDTH - 50, HEIGHT - 25, 'up', null, this, 1, 0, 1, 0);
-    buttonup.scale.setTo(1, 0.7);
+    var buttonup = game.add.button(WIDTH - 70, HEIGHT + 10, 'up', null, this, 1, 0, 1, 0);
+    buttonup.scale.setTo(1.4, 1.4);
     buttonup.fixedToCamera = true;
     buttonup.events.onInputOver.add(function(){arrowUp=true;});
     buttonup.events.onInputOut.add(function(){arrowUp=false;});
@@ -187,9 +215,17 @@ game.States.start = function() {
       this.manDirect ? (this.man.frame = 3) : (this.man.frame = 4);
     }
 
+    // 问号箱动画
     for (var i = this.mystery.length - 1; i >= 0; i--) {
       this.mystery[i].animations.play('flashing');
     }
+
+    // 草的动画
+    for (var i = this.grass.length - 1; i >= 0; i--) {
+      this.grass[i].animations.play('move');
+    }
+
+    this.flag.animations.play('move');
 
   };
 };
