@@ -26,7 +26,17 @@ game.States.boot = function() {
 
 game.States.preload = function() {
   this.preload = function() {
-    var preloadSprite = game.add.sprite(40, HEIGHT/2, 'loading');
+    var preloadSprite = game.add.sprite(70, HEIGHT/2, 'loading');
+    var progressText = game.add.text(WIDTH/2, HEIGHT/2-5, '0%', {
+        fontSize: '16px',
+        fill: '#ffffff'
+    });
+    progressText.anchor.setTo(0.4, 0.5); // 设置锚点，用于居中
+    // 监听加载完一个文件的事件
+    game.load.onFileComplete.add(function(progress) {
+        progressText.text = progress + '%';
+    });
+
     game.load.setPreloadSprite(preloadSprite);
     game.load.image('cover', 'assets/cover.jpg');
     game.load.spritesheet('startbutton', 'assets/startbutton.png', 100, 40, 2);
@@ -35,6 +45,7 @@ game.States.preload = function() {
     game.load.spritesheet('monster', 'assets/monster.png', 16, 16, 2);
     game.load.spritesheet('grass', 'assets/grass.png', 32, 16, 3);
     game.load.spritesheet('flag', 'assets/flag.png', 16, 16, 4);
+    game.load.spritesheet('gold', 'assets/gold.png', 16, 16, 3);
     game.load.image('wall', 'assets/wall.bmp');
     game.load.image('monsterDead', 'assets/monster-dead.png');
     game.load.image('manDead', 'assets/man-dead.png');
@@ -46,9 +57,26 @@ game.States.preload = function() {
     game.load.audio('startBGM', 'assets/startbgm.mp3');
     game.load.audio('playBGM', 'assets/playbgm.mp3');
     game.load.audio('jump', 'assets/jump.mp3');
-  };
-  this.create = function() {
-    game.state.start('main');
+    game.load.audio('goldSound', 'assets/gold.mp3');
+
+    // 监听加载完毕事件
+    game.load.onLoadComplete.add(onLoad);
+    // 最小展示时间，示例为3秒
+    var deadLine = false;
+    setTimeout(function() {
+        deadLine = true;
+    }, 1000);
+    // 加载完毕回调方法
+    function onLoad() {
+        if (deadLine) {
+            // 已到达最小展示时间，可以进入下一个场景
+            setTimeout(() => {game.state.start('main');}, 200);
+        } else {
+            // 还没有到最小展示时间，1秒后重试
+            setTimeout(onLoad, 200);
+        }
+    }
+
   };
 };
 
@@ -56,10 +84,11 @@ game.States.main = function() {
   this.create = function() {
     // 封面图
     var cover = game.add.tileSprite(0, 0, WIDTH, HEIGHT, 'cover');
+    cover.scale.setTo(1, 1.3);
     // 开始按钮
     this.startbutton = game.add.button(70, 200, 'startbutton', this.onStartClick, this, 1, 1, 0);
     // 背景音乐
-    this.normalback = game.add.audio('startBGM', 0.1, true);
+    this.normalback = game.add.sound('startBGM', 0.1, true);
     this.normalback.play();
   };
   this.onStartClick = function() {
@@ -77,7 +106,7 @@ game.States.start = function() {
     game.physics.startSystem(Phaser.ARCADE);
 
     // BGM
-    this.playmusic = game.add.audio('playBGM', 0.2, true);
+    this.playmusic = game.add.sound('playBGM', 0.2, true);
     this.playmusic.play();
 
     // 创建tilemap，指定每个tile的大小，16x16
@@ -102,7 +131,7 @@ game.States.start = function() {
     this.mystery[3] = this.mysteries.create(23*16, 10*16, 'mystery');
     this.mystery[4] = this.mysteries.create(64*16, 9*16, 'mystery');
     this.mystery[5] = this.mysteries.create(78*16, 10*16, 'mystery');
-    this.mystery[6] = this.mysteries.create(94*6, 6*16, 'mystery');
+    this.mystery[6] = this.mysteries.create(94*16, 6*16, 'mystery');
     this.mystery[7] = this.mysteries.create(106*16, 10*16, 'mystery');
     this.mystery[8] = this.mysteries.create(109*16, 10*16, 'mystery');
     this.mystery[9] = this.mysteries.create(109*16, 6*16, 'mystery');
@@ -110,6 +139,7 @@ game.States.start = function() {
     this.mystery[11] = this.mysteries.create(129*16, 6*16, 'mystery');
     this.mystery[12] = this.mysteries.create(130*16, 6*16, 'mystery');
     this.mystery[13] = this.mysteries.create(170*16, 10*16, 'mystery');
+    this.goldSoundSound = game.add.sound('goldSound', 0.2, false);
     for (var i = this.mystery.length - 1; i >= 0; i--) {
       this.mystery[i].body.immovable = true;
       this.mystery[i].animations.add('flashing',[0,1,2,3],3,true);
@@ -137,6 +167,8 @@ game.States.start = function() {
     this.flag = game.add.sprite(198*16+9, 3*16+8, 'flag');
     this.flag.animations.add('move', [0,1,2,3], 12, true);
 
+    // 金子
+
 
     // 人物
     this.man = game.add.sprite(50, HEIGHT - 64, 'man');
@@ -145,7 +177,7 @@ game.States.start = function() {
     this.man.body.collideWorldBounds = true;          //碰撞世界范围
     this.man.animations.add('right', [0,1,2,1], 14, true);//创建动画 数组为要播放的帧序号(精灵图) 12毫秒 是否循环
     this.man.animations.add('left', [7,6,5,6], 14, true);
-
+    this.jumpSound = game.add.sound('jump', 0.2, false);
 
     this.manDirect = true; //朝向 右：true; 左：false
     // 键盘操作
@@ -185,8 +217,9 @@ game.States.start = function() {
 
   };
   this.update = function() {
+    game.physics.arcade.collide(this.man, this.mysteries, this.collectgoldSound, null, this);
     game.physics.arcade.collide(this.man, this.layer);
-    game.physics.arcade.collide(this.man, this.mysteries);
+    
 
     // 左右走动
     if (this.cursors.left.isDown || arrowLeft) {
@@ -205,11 +238,18 @@ game.States.start = function() {
     if ((this.cursors.up.isDown || arrowUp) && (this.man.body.onFloor() || this.man.body.touching.down)) {
       this.man.body.velocity.y = -270;
       this.manDirect ? (this.man.frame = 3) : (this.man.frame = 4);
-      this.jumpSound = game.add.sound('jump', 0.2, false);
       this.jumpSound.play();
     } else if (this.cursors.down.isDown) {
       //
     } 
+    // 出边界
+    this.man.body.onWorldBounds = new Phaser.Signal();
+    this.man.body.onWorldBounds.add(function(man, up, down, left, right) {
+        if (down) {
+            man.kill();
+        }
+    });
+
     
     if (!(this.man.body.onFloor() || this.man.body.touching.down)) {
       this.manDirect ? (this.man.frame = 3) : (this.man.frame = 4);
@@ -225,8 +265,24 @@ game.States.start = function() {
       this.grass[i].animations.play('move');
     }
 
+    // 旗子
     this.flag.animations.play('move');
 
+  };
+
+  // 吃问号箱（金币和蘑菇）
+  this.collectgoldSound = function(man, item) {
+    //console.log(game.physics.arcade.angleBetween(man, item));
+    if ((game.physics.arcade.angleBetween(man, item) < -0.78) && (game.physics.arcade.angleBetween(man, item) > -2.36)){
+      console.log(item);
+      this.goldSoundSound.play();
+      var gold = game.add.sprite(item.x, item.y - 16, 'gold');
+      gold.animations.add('move', [0,1,2], 5, true);
+      gold.animations.play('move');
+      var tween = game.add.tween(gold).to({y: gold.y - 50}, 100, Phaser.Easing.Linear.None, true);
+      tween.onComplete.add(function(){gold.destroy();}, this);
+      item.destroy();
+    }
   };
 };
 
