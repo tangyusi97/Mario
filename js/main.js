@@ -40,7 +40,7 @@ game.States.preload = function() {
     game.load.setPreloadSprite(preloadSprite);
     game.load.image('cover', 'assets/cover.jpg');
     game.load.spritesheet('startbutton', 'assets/startbutton.png', 100, 40, 2);
-    game.load.spritesheet('man', 'assets/man-small.png', 16, 16, 10);
+    game.load.spritesheet('man', 'assets/man.png', 16, 30, 20);
     game.load.spritesheet('mystery', 'assets/mystery.png', 16, 16, 4);
     game.load.spritesheet('monster', 'assets/monster.png', 16, 16, 2);
     game.load.spritesheet('grass', 'assets/grass.png', 32, 16, 3);
@@ -49,6 +49,7 @@ game.States.preload = function() {
     game.load.image('wall', 'assets/wall.bmp');
     game.load.image('monsterDead', 'assets/monster-dead.png');
     game.load.image('manDead', 'assets/man-dead.png');
+    game.load.image('mushroom', 'assets/mushroom.png');
     game.load.spritesheet('left', 'assets/left.png', 40, 40, 2);
     game.load.spritesheet('right', 'assets/right.png', 40, 40, 2);
     game.load.spritesheet('up', 'assets/up.png', 40, 40, 2);
@@ -59,6 +60,8 @@ game.States.preload = function() {
     game.load.audio('jump', 'assets/jump.mp3');
     game.load.audio('goldSound', 'assets/gold.mp3');
     game.load.audio('winSound', 'assets/win.mp3');
+    game.load.audio('mushroomSound', 'assets/mushroom.mp3');
+    game.load.audio('biggerSound', 'assets/bigger.mp3');
 
     // 监听加载完毕事件
     game.load.onLoadComplete.add(onLoad);
@@ -176,9 +179,13 @@ game.States.start = function() {
     game.physics.arcade.enable(this.man);
     this.man.body.gravity.y = 500;                    //重力加速度
     this.man.body.collideWorldBounds = true;          //碰撞世界范围
-    this.man.animations.add('right', [0,1,2,1], 14, true);//创建动画 数组为要播放的帧序号(精灵图) 12毫秒 是否循环
-    this.man.animations.add('left', [7,6,5,6], 14, true);
+    this.manSize = 0;                    // 小马里奥
+    this.man.body.setSize(16, 16, 0, 14);// 碰撞范围
+    this.man.anchor.setTo(0, 0.4667);    // 碰撞时计算角度点
+    this.man.animations.add('right', [this.manSize+0,this.manSize+1,this.manSize+2,this.manSize+1], 14, true);//创建动画 数组为要播放的帧序号(精灵图) 12毫秒 是否循环
+    this.man.animations.add('left', [this.manSize+7,this.manSize+6,this.manSize+5,this.manSize+6], 14, true);
     this.jumpSound = game.add.sound('jump', 0.2, false);
+    this.biggerSound = game.add.sound('biggerSound', 0.2, false);
 
     this.manDirect = true; //朝向 右：true; 左：false
     // 键盘操作
@@ -221,6 +228,7 @@ game.States.start = function() {
     game.physics.arcade.collide(this.man, this.mysteries, this.collectgoldSound, null, this);
     game.physics.arcade.collide(this.man, this.layer);
     game.physics.arcade.overlap(this.man, this.layer, this.flagFalling, null, this);
+    game.physics.arcade.overlap(this.man, this.mushroom, this.eatMushroom, null, this);
 
     if (!this.win) {
       // 左右走动
@@ -234,16 +242,20 @@ game.States.start = function() {
         this.man.animations.play('right');
       } else {
         this.man.body.velocity.x = 0;
-        this.manDirect ? (this.man.frame = 0) : (this.man.frame = 7);
+        this.manDirect ? (this.man.frame = this.manSize+0) : (this.man.frame = this.manSize+7);
       }
       // 跳跃和蹲下
       if ((this.cursors.up.isDown || arrowUp) && (this.man.body.onFloor() || this.man.body.touching.down)) {
         this.man.body.velocity.y = -270;
-        this.manDirect ? (this.man.frame = 3) : (this.man.frame = 4);
+        this.manDirect ? (this.man.frame = this.manSize+3) : (this.man.frame = this.manSize+4);
         this.jumpSound.play();
       } else if (this.cursors.down.isDown) {
         //
-      } 
+      }
+      // 空中姿态
+      if (!(this.man.body.onFloor() || this.man.body.touching.down)) {
+        this.manDirect ? (this.man.frame = this.manSize+3) : (this.man.frame = this.manSize+4);
+      }
       // 出边界
       this.man.body.onWorldBounds = new Phaser.Signal();
       this.man.body.onWorldBounds.add(function(man, up, down, left, right) {
@@ -251,15 +263,11 @@ game.States.start = function() {
               man.kill();
           }
       });
-      // 空中姿态
-      if (!(this.man.body.onFloor() || this.man.body.touching.down)) {
-        this.manDirect ? (this.man.frame = 3) : (this.man.frame = 4);
-      }
 
     } else {
       // 胜利
       if (this.man.x >= 3162) {
-        //console.log(this.man.y);
+        console.log(this.man.y);
         this.man.body.velocity.x = 0;
         if (this.man.body.velocity.y < 0) {
           this.man.body.velocity.y = 0;
@@ -273,7 +281,7 @@ game.States.start = function() {
           this.onceFlag = true;
         }
         // 进城堡
-        if (this.man.y >= 192) {    // 滑倒底后的动画
+        if (this.man.y >= 178) {    // 滑倒底后的动画
           if (this.man.x < 3320) {
             this.man.body.velocity.x = 130;
             this.man.animations.play('right');   
@@ -304,20 +312,40 @@ game.States.start = function() {
 
   // 吃问号箱（金币和蘑菇）
   this.collectgoldSound = function(man, item) {
-    //console.log(game.physics.arcade.angleBetween(man, item));
+    console.log(game.physics.arcade.angleBetween(man, item));
     if ((game.physics.arcade.angleBetween(man, item) < -0.78) && (game.physics.arcade.angleBetween(man, item) > -2.36)){
       console.log(item);
-      this.goldSoundSound.play();
 
-      var gold = game.add.sprite(item.x, item.y - 16, 'gold');
-      gold.animations.add('move', [0,1,2], 5, true);
-      gold.animations.play('move');
-
-      var tween = game.add.tween(gold).to({y: gold.y - 50}, 100, Phaser.Easing.Linear.None, true);
-      tween.onComplete.add(function(){gold.destroy();}, this);
+      if (item.position.x === 336) {
+        // 蘑菇出现
+        this.mushroom = game.add.sprite(item.x, item.y - 16, 'mushroom');
+        game.physics.arcade.enable(this.mushroom);
+        var mushroomSound = game.add.sound('mushroomSound', 0.2);
+        mushroomSound.play();
+      } else {
+        // 金币冒出来
+        var gold = game.add.sprite(item.x, item.y - 16, 'gold');
+        gold.animations.add('move', [0,1,2], 5, true);
+        gold.animations.play('move');
+        this.goldSoundSound.play();
+        // 金币动画
+        var tween = game.add.tween(gold).to({y: gold.y - 50}, 100, Phaser.Easing.Linear.None, true);
+        tween.onComplete.add(function(){gold.destroy();}, this);
+      }
       item.destroy();
     }
   };
+
+  // 吃蘑菇
+  this.eatMushroom = function(man, mushroom) {
+    this.manSize = 10;                    // 大马里奥
+    this.man.body.setSize(16, 30, 0, 0);  // 碰撞范围
+    this.man.anchor.setTo(0, 0);          // 碰撞时计算角度点
+    this.man.animations.add('right', [this.manSize+0,this.manSize+1,this.manSize+2,this.manSize+1], 14, true);//创建动画 数组为要播放的帧序号(精灵图) 12毫秒 是否循环
+    this.man.animations.add('left', [this.manSize+7,this.manSize+6,this.manSize+5,this.manSize+6], 14, true);
+    this.mushroom.kill();
+    this.biggerSound.play();
+  }
 
   // 旗子降落
   this.flagFalling = function(man, item) {
@@ -325,6 +353,10 @@ game.States.start = function() {
       this.win = true;
     }
   }
+
+  // this.render = function(){
+  //    game.debug.body(this.man);
+  // }
 };
 
 
