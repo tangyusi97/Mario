@@ -58,6 +58,7 @@ game.States.preload = function() {
     game.load.audio('playBGM', 'assets/playbgm.mp3');
     game.load.audio('jump', 'assets/jump.mp3');
     game.load.audio('goldSound', 'assets/gold.mp3');
+    game.load.audio('winSound', 'assets/win.mp3');
 
     // 监听加载完毕事件
     game.load.onLoadComplete.add(onLoad);
@@ -219,40 +220,71 @@ game.States.start = function() {
   this.update = function() {
     game.physics.arcade.collide(this.man, this.mysteries, this.collectgoldSound, null, this);
     game.physics.arcade.collide(this.man, this.layer);
-    
+    game.physics.arcade.overlap(this.man, this.layer, this.flagFalling, null, this);
 
-    // 左右走动
-    if (this.cursors.left.isDown || arrowLeft) {
-      this.manDirect = false;
-      this.man.body.velocity.x = -130;
-      this.man.animations.play('left');
-    } else if (this.cursors.right.isDown || arrowRight) {
-      this.manDirect = true;
-      this.man.body.velocity.x = 130;
-      this.man.animations.play('right');
+    if (!this.win) {
+      // 左右走动
+      if (this.cursors.left.isDown || arrowLeft) {
+        this.manDirect = false;
+        this.man.body.velocity.x = -130;
+        this.man.animations.play('left');
+      } else if (this.cursors.right.isDown || arrowRight) {
+        this.manDirect = true;
+        this.man.body.velocity.x = 130;
+        this.man.animations.play('right');
+      } else {
+        this.man.body.velocity.x = 0;
+        this.manDirect ? (this.man.frame = 0) : (this.man.frame = 7);
+      }
+      // 跳跃和蹲下
+      if ((this.cursors.up.isDown || arrowUp) && (this.man.body.onFloor() || this.man.body.touching.down)) {
+        this.man.body.velocity.y = -270;
+        this.manDirect ? (this.man.frame = 3) : (this.man.frame = 4);
+        this.jumpSound.play();
+      } else if (this.cursors.down.isDown) {
+        //
+      } 
+      // 出边界
+      this.man.body.onWorldBounds = new Phaser.Signal();
+      this.man.body.onWorldBounds.add(function(man, up, down, left, right) {
+          if (down) {
+              man.kill();
+          }
+      });
+      // 空中姿态
+      if (!(this.man.body.onFloor() || this.man.body.touching.down)) {
+        this.manDirect ? (this.man.frame = 3) : (this.man.frame = 4);
+      }
+
     } else {
-      this.man.body.velocity.x = 0;
-      this.manDirect ? (this.man.frame = 0) : (this.man.frame = 7);
-    }
-    // 跳跃和蹲下
-    if ((this.cursors.up.isDown || arrowUp) && (this.man.body.onFloor() || this.man.body.touching.down)) {
-      this.man.body.velocity.y = -270;
-      this.manDirect ? (this.man.frame = 3) : (this.man.frame = 4);
-      this.jumpSound.play();
-    } else if (this.cursors.down.isDown) {
-      //
-    } 
-    // 出边界
-    this.man.body.onWorldBounds = new Phaser.Signal();
-    this.man.body.onWorldBounds.add(function(man, up, down, left, right) {
-        if (down) {
-            man.kill();
+      // 胜利
+      if (this.man.x >= 3162) {
+        //console.log(this.man.y);
+        this.man.body.velocity.x = 0;
+        if (this.man.body.velocity.y < 0) {
+          this.man.body.velocity.y = 0;
         }
-    });
-
-    
-    if (!(this.man.body.onFloor() || this.man.body.touching.down)) {
-      this.manDirect ? (this.man.frame = 3) : (this.man.frame = 4);
+        // 旗子降落
+        if(!this.onceFlag){
+          var flagtween = game.add.tween(this.flag).to({y: 190}, 1000, Phaser.Easing.Linear.None, true);
+          var winBGM = game.add.sound('winSound', 0.2);
+          this.playmusic.stop();
+          winBGM.play();
+          this.onceFlag = true;
+        }
+        // 进城堡
+        if (this.man.y >= 192) {    // 滑倒底后的动画
+          if (this.man.x < 3320) {
+            this.man.body.velocity.x = 130;
+            this.man.animations.play('right');   
+          } else {
+            this.man.body.velocity.x = 0;
+            this.man.frame = 9; 
+          }
+        } else {
+          this.man.frame = 8;
+        }
+      }
     }
 
     // 问号箱动画
@@ -276,14 +308,23 @@ game.States.start = function() {
     if ((game.physics.arcade.angleBetween(man, item) < -0.78) && (game.physics.arcade.angleBetween(man, item) > -2.36)){
       console.log(item);
       this.goldSoundSound.play();
+
       var gold = game.add.sprite(item.x, item.y - 16, 'gold');
       gold.animations.add('move', [0,1,2], 5, true);
       gold.animations.play('move');
+
       var tween = game.add.tween(gold).to({y: gold.y - 50}, 100, Phaser.Easing.Linear.None, true);
       tween.onComplete.add(function(){gold.destroy();}, this);
       item.destroy();
     }
   };
+
+  // 旗子降落
+  this.flagFalling = function(man, item) {
+    if (item.index === 13) {
+      this.win = true;
+    }
+  }
 };
 
 
