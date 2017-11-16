@@ -25,6 +25,7 @@ game.States.boot = function() {
 };
 
 game.States.preload = function() {
+
   this.preload = function() {
     var preloadSprite = game.add.sprite(70, HEIGHT/2, 'loading');
     var progressText = game.add.text(WIDTH/2, HEIGHT/2-5, '0%', {
@@ -85,6 +86,7 @@ game.States.preload = function() {
 };
 
 game.States.main = function() {
+
   this.create = function() {
     // 封面图
     var cover = game.add.tileSprite(0, 0, WIDTH, HEIGHT, 'cover');
@@ -95,6 +97,7 @@ game.States.main = function() {
     this.normalback = game.add.sound('startBGM', 0.1, true);
     this.normalback.play();
   };
+
   this.onStartClick = function() {
     game.state.start('start');
     this.normalback.stop();
@@ -102,9 +105,10 @@ game.States.main = function() {
 };
 
 game.States.start = function() {
+
   var arrowLeft, arrowRight, arrowUp = false;
   this.create = function() {
-
+    // 设置背景色
     game.stage.backgroundColor = '#6888FF';
     // 启动物理引擎
     game.physics.startSystem(Phaser.ARCADE);
@@ -128,51 +132,32 @@ game.States.start = function() {
     // 问号箱
     this.mysteries = game.add.group();
     this.mysteries.enableBody = true;
-    this.mystery = [];
-    this.mystery[0] = this.mysteries.create(16*16, 10*16, 'mystery');
-    this.mystery[1] = this.mysteries.create(21*16, 10*16, 'mystery');
-    this.mystery[2] = this.mysteries.create(22*16, 6*16, 'mystery');
-    this.mystery[3] = this.mysteries.create(23*16, 10*16, 'mystery');
-    this.mystery[4] = this.mysteries.create(64*16, 9*16, 'mystery');
-    this.mystery[5] = this.mysteries.create(78*16, 10*16, 'mystery');
-    this.mystery[6] = this.mysteries.create(94*16, 6*16, 'mystery');
-    this.mystery[7] = this.mysteries.create(106*16, 10*16, 'mystery');
-    this.mystery[8] = this.mysteries.create(109*16, 10*16, 'mystery');
-    this.mystery[9] = this.mysteries.create(109*16, 6*16, 'mystery');
-    this.mystery[10] = this.mysteries.create(112*16, 10*16, 'mystery');
-    this.mystery[11] = this.mysteries.create(129*16, 6*16, 'mystery');
-    this.mystery[12] = this.mysteries.create(130*16, 6*16, 'mystery');
-    this.mystery[13] = this.mysteries.create(170*16, 10*16, 'mystery');
+    this.map.createFromTiles(15, null, 'mystery', this.layer, this.mysteries);
+    this.mysteries.setAll('body.immovable', 'true');
+    this.mysteries.callAll('animations.add', 'animations', 'spin', [0, 1, 2, 3], 3, true);
+    this.mysteries.callAll('animations.play', 'animations', 'spin');
+    // 金子
+    this.golds = game.add.group();
+    this.golds.enableBody = true;
+    this.map.createFromTiles(17, -1, 'gold', this.layer, this.golds);
+    this.golds.callAll('animations.add', 'animations', 'spin', [0, 1, 2], 5, true);
+    this.golds.callAll('animations.play', 'animations', 'spin');
     this.goldSoundSound = game.add.sound('goldSound', 0.2, false);
-    for (var i = this.mystery.length - 1; i >= 0; i--) {
-      this.mystery[i].body.immovable = true;
-      this.mystery[i].animations.add('flashing',[0,1,2,3],3,true);
-    }
-
     // 草
-    this.grass = [];
-    this.grass[0] = game.add.sprite(22*16, 13*16, 'grass');
-    this.grass[1] = game.add.sprite(41*16, 13*16, 'grass');
-    this.grass[2] = game.add.sprite(42*16, 13*16, 'grass');
-    this.grass[3] = game.add.sprite(65*16, 13*16, 'grass');
-    this.grass[4] = game.add.sprite(71*16, 13*16, 'grass');
-    this.grass[5] = game.add.sprite(89*16, 13*16, 'grass');
-    this.grass[6] = game.add.sprite(113*16, 13*16, 'grass');
-    this.grass[7] = game.add.sprite(114*16, 13*16, 'grass');
-    this.grass[8] = game.add.sprite(138*16, 13*16, 'grass');
-    this.grass[9] = game.add.sprite(159*16, 13*16, 'grass');
-    this.grass[10] = game.add.sprite(166*16, 13*16, 'grass');
-    this.grass[11] = game.add.sprite(191*16, 13*16, 'grass');
-    for (var i = this.grass.length - 1; i >= 0; i--) {
-      this.grass[i].animations.add('move', [0,1,2], 10, true);
-    }
-
+    this.grasses = game.add.group();
+    this.map.createFromTiles(16, -1, 'grass', this.layer, this.grasses);
+    this.grasses.callAll('animations.add', 'animations', 'blow', [0, 1, 2], 10, true);
+    this.grasses.callAll('animations.play', 'animations', 'blow');
     // 旗子
     this.flag = game.add.sprite(198*16+9, 3*16+8, 'flag');
     this.flag.animations.add('move', [0,1,2,3], 12, true);
-
-    // 金子
-
+    this.flag.animations.play();
+    // 怪物
+    this.monsters = game.add.group();
+    this.monsters.enableBody = true;
+    this.map.createFromTiles(18, -1, 'monster', this.layer, this.monsters);
+    this.monsters.callAll('animations.add', 'animations', 'move', [0, 1], 5, true);
+    this.monsters.callAll('animations.play', 'animations', 'move');
 
     // 人物
     this.man = game.add.sprite(50, HEIGHT - 64, 'man');
@@ -226,9 +211,10 @@ game.States.start = function() {
   };
   this.update = function() {
     game.physics.arcade.collide(this.man, this.mysteries, this.collectgoldSound, null, this);
-    game.physics.arcade.collide(this.man, this.layer);
+    game.physics.arcade.collide(this.man, this.layer, this.killWall, null, this);
     game.physics.arcade.overlap(this.man, this.layer, this.flagFalling, null, this);
     game.physics.arcade.overlap(this.man, this.mushroom, this.eatMushroom, null, this);
+    game.physics.arcade.overlap(this.man, this.golds, this.collectGold, null, this);
 
     if (!this.win) {
       // 左右走动
@@ -267,7 +253,6 @@ game.States.start = function() {
     } else {
       // 胜利
       if (this.man.x >= 3162) {
-        console.log(this.man.y);
         this.man.body.velocity.x = 0;
         if (this.man.body.velocity.y < 0) {
           this.man.body.velocity.y = 0;
@@ -281,38 +266,23 @@ game.States.start = function() {
           this.onceFlag = true;
         }
         // 进城堡
-        if (this.man.y >= 178) {    // 滑倒底后的动画
+        if (this.flag.y === 190) {    // 滑倒底后的动画
           if (this.man.x < 3320) {
             this.man.body.velocity.x = 130;
             this.man.animations.play('right');   
           } else {
             this.man.body.velocity.x = 0;
-            this.man.frame = 9; 
+            this.man.frame = this.manSize+9; 
           }
         } else {
-          this.man.frame = 8;
+          this.man.frame = this.manSize+8;
         }
       }
     }
 
-    // 问号箱动画
-    for (var i = this.mystery.length - 1; i >= 0; i--) {
-      this.mystery[i].animations.play('flashing');
-    }
-
-    // 草的动画
-    for (var i = this.grass.length - 1; i >= 0; i--) {
-      this.grass[i].animations.play('move');
-    }
-
-    // 旗子
-    this.flag.animations.play('move');
-
-  };
-
-  // 吃问号箱（金币和蘑菇）
+  // 吃问号箱
   this.collectgoldSound = function(man, item) {
-    console.log(game.physics.arcade.angleBetween(man, item));
+    //console.log(game.physics.arcade.angleBetween(man, item));
     if ((game.physics.arcade.angleBetween(man, item) < -0.78) && (game.physics.arcade.angleBetween(man, item) > -2.36)){
       console.log(item);
 
@@ -335,7 +305,11 @@ game.States.start = function() {
       item.destroy();
     }
   };
-
+  // 吃金子
+  this.collectGold = function(man, gold) {
+    gold.destroy();
+    this.goldSoundSound.play();
+  };
   // 吃蘑菇
   this.eatMushroom = function(man, mushroom) {
     this.manSize = 10;                    // 大马里奥
@@ -345,14 +319,26 @@ game.States.start = function() {
     this.man.animations.add('left', [this.manSize+7,this.manSize+6,this.manSize+5,this.manSize+6], 14, true);
     this.mushroom.kill();
     this.biggerSound.play();
-  }
+  };
 
   // 旗子降落
   this.flagFalling = function(man, item) {
     if (item.index === 13) {
       this.win = true;
     }
-  }
+  };
+
+  // 大人撞碎墙
+  this.killWall = function(man, item) {
+    if (item.index === 11) {
+      if (   (game.physics.arcade.angleToXY(man, item.worldX, item.worldY) < -0.78)
+          && (game.physics.arcade.angleToXY(man, item.worldX, item.worldY) > -2.36) 
+          && (this.manSize === 10)
+          ){
+        this.map.removeTile(item.x, item.y);
+      }
+    }
+  };
 
   // this.render = function(){
   //    game.debug.body(this.man);
