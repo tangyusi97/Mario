@@ -95,7 +95,7 @@ game.States.main = function() {
   this.create = function() {
     // 封面图
     var cover = game.add.tileSprite(0, 0, WIDTH, HEIGHT, 'cover');
-    cover.scale.setTo(1, 1.3);
+    cover.scale.setTo(1, 1.35);
     // 开始按钮
     this.startbutton = game.add.button(70, 200, 'startbutton', this.onStartClick, this, 1, 1, 0);
     // 背景音乐
@@ -226,10 +226,11 @@ game.States.start = function() {
     game.physics.arcade.overlap(this.man, this.mushroom, this.eatMushroom, null, this);
     game.physics.arcade.overlap(this.man, this.golds, this.collectGold, null, this);
     game.physics.arcade.overlap(this.man, this.monsters, this.killMonster, null, this);
-    game.physics.arcade.collide(this.monsters, this.layer)
+    game.physics.arcade.collide(this.monsters, this.layer);
+    game.physics.arcade.collide(this.monsters, this.monsters);
 
     if (!this.win && this.man.alive) {      // 平常状态
-      // 人物的控制
+      //************************************** 人物的控制 ************************
       // 左右走动
       if (this.cursors.left.isDown || arrowLeft) {
         this.manDirect = false;
@@ -291,6 +292,32 @@ game.States.start = function() {
         }
       }
     }
+    //*************************************************************************
+    //********************************* 怪物的控制 *****************************
+    this.monsters.forEach(function(monster){
+      if (monster.position.x - game.camera.x <= 360) {  // 进入视野
+        if (this.man.alive) {
+          if (monster.stopEvent) {      // TRUE为向右, FLASE为向左
+            monster.body.velocity.x = 40;
+          }else {
+            monster.body.velocity.x = -40;
+          }
+        } else {
+          monster.body.velocity.x = 0;
+        }
+        // 碰壁
+        if (monster.body.blocked.left || monster.body.touching.left) {  
+          monster.stopEvent = true;
+        } else if (monster.body.blocked.right || monster.body.touching.right) {
+          monster.stopEvent = false;
+        }
+        // 出边界
+        if (monster.position.x < 0 || monster.position.y > 256) {
+          monster.destroy();
+        }
+      }
+    }, this);
+    //*************************************************************************
   }
 
   // 吃问号箱
@@ -377,7 +404,7 @@ game.States.start = function() {
     tween.onComplete.add(function(){
       var tween = game.add.tween(manDead).to({y: 300}, 1000, Phaser.Easing.Quadratic.out, true);
       tween.onComplete.add(function(){
-        game.state.start('main');
+       game.time.events.add(Phaser.Timer.SECOND, function(){game.state.start('main');});
       });
     }, this);
     var deadSound = game.add.sound('deadSound');
