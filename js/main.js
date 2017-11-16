@@ -9,14 +9,12 @@ game.States = {};
 game.States.boot = function() {
 
   this.preload = function() {
-    if(typeof(GAME) !== "undefined") {
-      this.load.baseURL = GAME + "/";
-    }
-
+    // 设备屏幕适配
     this.scale.pageAlignHorizontally = true;
     this.scale.pageAlignVertically = true;
     this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
     this.scale.refresh();
+    // 加载进度条动画
     game.load.image('loading', 'assets/preloader.gif');
   };
   this.create = function() {
@@ -38,6 +36,7 @@ game.States.preload = function() {
         progressText.text = progress + '%';
     });
 
+    // 加载所有游戏资源
     game.load.setPreloadSprite(preloadSprite);
     game.load.image('cover', 'assets/cover.jpg');
     game.load.spritesheet('startbutton', 'assets/startbutton.png', 100, 40, 2);
@@ -51,22 +50,28 @@ game.States.preload = function() {
     game.load.image('monsterDead', 'assets/monster-dead.png');
     game.load.image('manDead', 'assets/man-dead.png');
     game.load.image('mushroom', 'assets/mushroom.png');
+    game.load.image('dead', 'assets/man-dead.png');
+    game.load.image('monsterDead', 'assets/monster-dead.png');
     game.load.spritesheet('left', 'assets/left.png', 40, 40, 2);
     game.load.spritesheet('right', 'assets/right.png', 40, 40, 2);
     game.load.spritesheet('up', 'assets/up.png', 40, 40, 2);
     game.load.tilemap('map', 'assets/tilemaps/map.csv', null, Phaser.Tilemap.CSV);
     game.load.image('tiles', 'assets/tilemaps/tiles.png');
-    game.load.audio('startBGM', 'assets/startbgm.mp3');
-    game.load.audio('playBGM', 'assets/playbgm.mp3');
-    game.load.audio('jump', 'assets/jump.mp3');
-    game.load.audio('goldSound', 'assets/gold.mp3');
-    game.load.audio('winSound', 'assets/win.mp3');
-    game.load.audio('mushroomSound', 'assets/mushroom.mp3');
-    game.load.audio('biggerSound', 'assets/bigger.mp3');
+    game.load.audio('startBGM', 'assets/sounds/startbgm.mp3');
+    game.load.audio('playBGM', 'assets/sounds/playbgm.mp3');
+    game.load.audio('jump', 'assets/sounds/jump.mp3');
+    game.load.audio('goldSound', 'assets/sounds/gold.mp3');
+    game.load.audio('winSound', 'assets/sounds/win.mp3');
+    game.load.audio('deadSound', 'assets/sounds/die.mp3');
+    game.load.audio('mushroomSound', 'assets/sounds/mushroom.mp3');
+    game.load.audio('biggerSound', 'assets/sounds/bigger.mp3');
+    game.load.audio('smallerSound', 'assets/sounds/smaller.mp3');
+    game.load.audio('killWallSound', 'assets/sounds/killWall.mp3');
+    game.load.audio('killMonsterSound', 'assets/sounds/killMonster.mp3');
 
     // 监听加载完毕事件
     game.load.onLoadComplete.add(onLoad);
-    // 最小展示时间，示例为3秒
+    // 最小展示时间，示例为1秒
     var deadLine = false;
     setTimeout(function() {
         deadLine = true;
@@ -106,7 +111,7 @@ game.States.main = function() {
 
 game.States.start = function() {
 
-  var arrowLeft, arrowRight, arrowUp = false;
+  var arrowLeft = arrowRight = arrowUp = false;
   this.create = function() {
     // 设置背景色
     game.stage.backgroundColor = '#6888FF';
@@ -119,9 +124,7 @@ game.States.start = function() {
 
     // 创建tilemap，指定每个tile的大小，16x16
     this.map = game.add.tilemap('map', 16, 16);
-    // image添加上
     this.map.addTilesetImage('tiles');
-    // 设置碰撞
     this.map.setCollisionBetween(0,11);
     this.map.setCollision(15);
     // layer
@@ -142,7 +145,7 @@ game.States.start = function() {
     this.map.createFromTiles(17, -1, 'gold', this.layer, this.golds);
     this.golds.callAll('animations.add', 'animations', 'spin', [0, 1, 2], 5, true);
     this.golds.callAll('animations.play', 'animations', 'spin');
-    this.goldSoundSound = game.add.sound('goldSound', 0.2, false);
+    this.goldSoundSound = game.add.sound('goldSound', 0.2);
     // 草
     this.grasses = game.add.group();
     this.map.createFromTiles(16, -1, 'grass', this.layer, this.grasses);
@@ -158,19 +161,20 @@ game.States.start = function() {
     this.map.createFromTiles(18, -1, 'monster', this.layer, this.monsters);
     this.monsters.callAll('animations.add', 'animations', 'move', [0, 1], 5, true);
     this.monsters.callAll('animations.play', 'animations', 'move');
+    this.killMonsterSound = game.add.sound('killMonsterSound', 0.2);
+    this.killWallSound = game.add.sound('killWallSound', 0.2);
 
     // 人物
     this.man = game.add.sprite(50, HEIGHT - 64, 'man');
+    this.man.alive = true;
+    this.man.isHurt = true;
     game.physics.arcade.enable(this.man);
     this.man.body.gravity.y = 500;                    //重力加速度
     this.man.body.collideWorldBounds = true;          //碰撞世界范围
-    this.manSize = 0;                    // 小马里奥
-    this.man.body.setSize(16, 16, 0, 14);// 碰撞范围
-    this.man.anchor.setTo(0, 0.4667);    // 碰撞时计算角度点
-    this.man.animations.add('right', [this.manSize+0,this.manSize+1,this.manSize+2,this.manSize+1], 14, true);//创建动画 数组为要播放的帧序号(精灵图) 12毫秒 是否循环
-    this.man.animations.add('left', [this.manSize+7,this.manSize+6,this.manSize+5,this.manSize+6], 14, true);
+    this.manToSize(0);
     this.jumpSound = game.add.sound('jump', 0.2, false);
     this.biggerSound = game.add.sound('biggerSound', 0.2, false);
+    this.smallerSound = game.add.sound('smallerSound', 0.2, false);
 
     this.manDirect = true; //朝向 右：true; 左：false
     // 键盘操作
@@ -215,8 +219,11 @@ game.States.start = function() {
     game.physics.arcade.overlap(this.man, this.layer, this.flagFalling, null, this);
     game.physics.arcade.overlap(this.man, this.mushroom, this.eatMushroom, null, this);
     game.physics.arcade.overlap(this.man, this.golds, this.collectGold, null, this);
+    game.physics.arcade.overlap(this.man, this.monsters, this.killMonster, null, this);
+    game.physics.arcade.collide(this.monsters, this.layer)
 
-    if (!this.win) {
+    if (!this.win && this.man.alive) {      // 平常状态
+      // 人物的控制
       // 左右走动
       if (this.cursors.left.isDown || arrowLeft) {
         this.manDirect = false;
@@ -246,11 +253,10 @@ game.States.start = function() {
       this.man.body.onWorldBounds = new Phaser.Signal();
       this.man.body.onWorldBounds.add(function(man, up, down, left, right) {
           if (down) {
-              man.kill();
+            this.beingKill(this.man.x, this.man.y);
           }
-      });
-
-    } else {
+      }, this);
+    } else {              // 播放胜利动画
       // 胜利
       if (this.man.x >= 3162) {
         this.man.body.velocity.x = 0;
@@ -279,6 +285,7 @@ game.States.start = function() {
         }
       }
     }
+  }
 
   // 吃问号箱
   this.collectgoldSound = function(man, item) {
@@ -312,22 +319,16 @@ game.States.start = function() {
   };
   // 吃蘑菇
   this.eatMushroom = function(man, mushroom) {
-    this.manSize = 10;                    // 大马里奥
-    this.man.body.setSize(16, 30, 0, 0);  // 碰撞范围
-    this.man.anchor.setTo(0, 0);          // 碰撞时计算角度点
-    this.man.animations.add('right', [this.manSize+0,this.manSize+1,this.manSize+2,this.manSize+1], 14, true);//创建动画 数组为要播放的帧序号(精灵图) 12毫秒 是否循环
-    this.man.animations.add('left', [this.manSize+7,this.manSize+6,this.manSize+5,this.manSize+6], 14, true);
+    this.manToSize(1);
     this.mushroom.kill();
     this.biggerSound.play();
   };
-
   // 旗子降落
   this.flagFalling = function(man, item) {
     if (item.index === 13) {
       this.win = true;
     }
   };
-
   // 大人撞碎墙
   this.killWall = function(man, item) {
     if (item.index === 11) {
@@ -336,8 +337,61 @@ game.States.start = function() {
           && (this.manSize === 10)
           ){
         this.map.removeTile(item.x, item.y);
+        this.killWallSound.play();
       }
     }
+  };
+  // 踩死怪物
+  this.killMonster = function(man, monster) {
+    if (this.man.isHurt) {
+      this.man.anchor.setTo(0, 0.4667);
+      // 踩中怪物
+      if ((game.physics.arcade.angleBetween(man, monster) > 0.78) && (game.physics.arcade.angleBetween(man, monster) < 2.36)) {
+        monster.destroy();
+        var monsterDead = game.add.sprite(monster.x, monster.y, 'monsterDead');
+         game.time.events.add(Phaser.Timer.SECOND / 2, function(){monsterDead.destroy()});
+        this.man.body.velocity.y = -200;
+        this.killMonsterSound.play();
+      } 
+      // 碰到怪物
+      else {
+        if (this.manSize === 10) {
+          this.manToSize(0);
+          this.smallerSound.play();
+          this.man.isHurt = false;
+          game.time.events.add(Phaser.Timer.SECOND, function(){this.man.isHurt = true}, this);
+        } else this.beingKill(man.x, man.y);
+      }
+      if (this.manSize === 10) this.man.anchor.setTo(0, 0);
+    }
+  }
+  // 死亡
+  this.beingKill = function(x, y) {
+    this.man.alive = false;
+    this.man.kill();
+    var manDead = game.add.sprite(x, y , 'dead');
+    var tween = game.add.tween(manDead).to({y: y-20}, 200, Phaser.Easing.Quadratic.out, true, 500);
+    tween.onComplete.add(function(){
+      var tween = game.add.tween(manDead).to({y: 300}, 1000, Phaser.Easing.Quadratic.out, true);
+    }, this);
+    var deadSound = game.add.sound('deadSound');
+    this.playmusic.stop();
+    deadSound.play();
+  };
+  // 变大变小转换
+  this.manToSize = function(size) {
+    if (size === 0) {   //小人
+      this.manSize = 0;                    // 小马里奥
+      this.man.body.setSize(16, 16, 0, 14);// 碰撞范围
+      this.man.anchor.setTo(0, 0.4667);    // 碰撞时计算角度点
+    }else {
+      this.manSize = 10;                    // 大马里奥
+      this.man.body.setSize(16, 30, 0, 0);  // 碰撞范围
+      this.man.anchor.setTo(0, 0);          // 碰撞时计算角度点
+    }
+    this.man.animations.add('right', [this.manSize+0,this.manSize+1,this.manSize+2,this.manSize+1], 14, true);//创建动画 数组为要播放的帧序号(精灵图) 12毫秒 是否循环
+    this.man.animations.add('left', [this.manSize+7,this.manSize+6,this.manSize+5,this.manSize+6], 14, true);
+
   };
 
   // this.render = function(){
