@@ -159,6 +159,7 @@ game.States.start = function() {
     this.monsters = game.add.group();
     this.monsters.enableBody = true;
     this.map.createFromTiles(18, -1, 'monster', this.layer, this.monsters);
+    this.monsters.setAll('body.gravity.y', 500);
     this.monsters.callAll('animations.add', 'animations', 'move', [0, 1], 5, true);
     this.monsters.callAll('animations.play', 'animations', 'move');
     this.killMonsterSound = game.add.sound('killMonsterSound', 0.2);
@@ -166,7 +167,6 @@ game.States.start = function() {
 
     // 人物
     this.man = game.add.sprite(50, HEIGHT - 64, 'man');
-    this.man.alive = true;
     this.man.isHurt = true;
     game.physics.arcade.enable(this.man);
     this.man.body.gravity.y = 500;                    //重力加速度
@@ -213,7 +213,13 @@ game.States.start = function() {
     buttonup.events.onInputUp.add(function(){arrowUp=false;});
 
   };
+
+  //***********************************************************************************
+  //**********************************update*******************************************
+  //***********************************************************************************
   this.update = function() {
+    //console.log(this.man.alive);
+
     game.physics.arcade.collide(this.man, this.mysteries, this.collectgoldSound, null, this);
     game.physics.arcade.collide(this.man, this.layer, this.killWall, null, this);
     game.physics.arcade.overlap(this.man, this.layer, this.flagFalling, null, this);
@@ -291,8 +297,6 @@ game.States.start = function() {
   this.collectgoldSound = function(man, item) {
     //console.log(game.physics.arcade.angleBetween(man, item));
     if ((game.physics.arcade.angleBetween(man, item) < -0.78) && (game.physics.arcade.angleBetween(man, item) > -2.36)){
-      console.log(item);
-
       if (item.position.x === 336) {
         // 蘑菇出现
         this.mushroom = game.add.sprite(item.x, item.y - 16, 'mushroom');
@@ -367,12 +371,14 @@ game.States.start = function() {
   }
   // 死亡
   this.beingKill = function(x, y) {
-    this.man.alive = false;
     this.man.kill();
     var manDead = game.add.sprite(x, y , 'dead');
     var tween = game.add.tween(manDead).to({y: y-20}, 200, Phaser.Easing.Quadratic.out, true, 500);
     tween.onComplete.add(function(){
       var tween = game.add.tween(manDead).to({y: 300}, 1000, Phaser.Easing.Quadratic.out, true);
+      tween.onComplete.add(function(){
+        game.state.start('main');
+      });
     }, this);
     var deadSound = game.add.sound('deadSound');
     this.playmusic.stop();
@@ -399,10 +405,17 @@ game.States.start = function() {
   // }
 };
 
+game.States.over = function() {
+  this.create = function() {
+    //
+  }
+}
+
 
 game.state.add('boot', game.States.boot);
 game.state.add('preload', game.States.preload);
 game.state.add('main', game.States.main);
 game.state.add('start', game.States.start);
+game.state.add('over', game.States.over);
 
 game.state.start('boot');
