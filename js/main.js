@@ -229,8 +229,8 @@ game.States.start = function() {
     game.physics.arcade.collide(this.man, this.layer, this.killWall, null, this);
     game.physics.arcade.overlap(this.man, this.layer, this.flagFalling, null, this);
     game.physics.arcade.overlap(this.man, this.mushroom, this.eatMushroom, null, this);
-    game.physics.arcade.overlap(this.man, this.golds, this.collectGold, null, this);
-    game.physics.arcade.overlap(this.man, this.monsters, this.killMonster, null, this);
+    this.overGold = game.physics.arcade.overlap(this.man, this.golds, this.collectGold, null, this);
+    this.overMonster =  game.physics.arcade.overlap(this.man, this.monsters, this.killMonster, null, this);
     game.physics.arcade.collide(this.monsters, this.layer);
     game.physics.arcade.collide(this.monsters, this.monsters);
 
@@ -250,7 +250,7 @@ game.States.start = function() {
         this.manDirect ? (this.man.frame = this.manSize+0) : (this.man.frame = this.manSize+7);
       }
       // 跳跃和蹲下
-      if ((this.cursors.up.isDown || arrowUp) && (this.man.body.onFloor() || this.man.body.touching.down)) {
+      if ((this.cursors.up.isDown || arrowUp) && (this.man.body.onFloor() || this.man.body.touching.down) && !this.overGold) {
         this.man.body.velocity.y = -270;
         this.manDirect ? (this.man.frame = this.manSize+3) : (this.man.frame = this.manSize+4);
         this.jumpSound.play();
@@ -311,10 +311,12 @@ game.States.start = function() {
           monster.body.velocity.x = 0;
         }
         // 碰壁
-        if (monster.body.blocked.left || monster.body.touching.left) {  
-          monster.stopEvent = true;
-        } else if (monster.body.blocked.right || monster.body.touching.right) {
-          monster.stopEvent = false;
+        if (!this.overMonster) {         // 怪物不受人的影响
+          if (monster.body.blocked.left || monster.body.touching.left) {  
+            monster.stopEvent = true;
+          } else if (monster.body.blocked.right || monster.body.touching.right) {
+            monster.stopEvent = false;
+          }
         }
         // 出边界
         if (monster.position.x < 0 || monster.position.y > 256) {
