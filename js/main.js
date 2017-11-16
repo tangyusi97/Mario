@@ -39,6 +39,7 @@ game.States.preload = function() {
     // 加载所有游戏资源
     game.load.setPreloadSprite(preloadSprite);
     game.load.image('cover', 'assets/cover.jpg');
+    game.load.image('bg', 'assets/bg.bmp');
     game.load.spritesheet('startbutton', 'assets/startbutton.png', 100, 40, 2);
     game.load.spritesheet('man', 'assets/man.png', 16, 30, 20);
     game.load.spritesheet('mystery', 'assets/mystery.png', 16, 16, 4);
@@ -114,7 +115,7 @@ game.States.start = function() {
   var arrowLeft = arrowRight = arrowUp = false;
   this.create = function() {
     // 设置背景色
-    game.stage.backgroundColor = '#6888FF';
+    game.stage.backgroundColor = '#CCC';
     // 启动物理引擎
     game.physics.startSystem(Phaser.ARCADE);
 
@@ -130,6 +131,10 @@ game.States.start = function() {
     // layer
     this.layer = this.map.createLayer(0);
     this.layer.resizeWorld();
+
+    // 背景图
+    var bg = game.add.tileSprite(0, 0, game.world.width, game.world.height, 'bg');
+    bg.sendToBack();
 
     // 地图资源
     // 问号箱
@@ -154,7 +159,7 @@ game.States.start = function() {
     // 旗子
     this.flag = game.add.sprite(198*16+9, 3*16+8, 'flag');
     this.flag.animations.add('move', [0,1,2,3], 12, true);
-    this.flag.animations.play();
+    this.flag.animations.play('move');
     // 怪物
     this.monsters = game.add.group();
     this.monsters.enableBody = true;
@@ -324,7 +329,10 @@ game.States.start = function() {
   this.collectgoldSound = function(man, item) {
     //console.log(game.physics.arcade.angleBetween(man, item));
     if ((game.physics.arcade.angleBetween(man, item) < -0.78) && (game.physics.arcade.angleBetween(man, item) > -2.36)){
-      if (item.position.x === 336) {
+      if (item.position.x === 21*16 ||
+          item.position.x === 78*16 ||
+          item.position.x === 109*16
+         ) {
         // 蘑菇出现
         this.mushroom = game.add.sprite(item.x, item.y - 16, 'mushroom');
         game.physics.arcade.enable(this.mushroom);
@@ -363,16 +371,16 @@ game.States.start = function() {
   // 大人撞碎墙
   this.killWall = function(man, item) {
     if (item.index === 11) {
-      if (   (game.physics.arcade.angleToXY(man, item.worldX, item.worldY) < -0.78)
-          && (game.physics.arcade.angleToXY(man, item.worldX, item.worldY) > -2.36) 
-          && (this.manSize === 10)
-          ){
+      if ((game.physics.arcade.angleToXY(man, item.worldX, item.worldY) < -0.78) &&
+          (game.physics.arcade.angleToXY(man, item.worldX, item.worldY) > -2.36) &&
+          (this.manSize === 10)
+         ){
         this.map.removeTile(item.x, item.y);
         this.killWallSound.play();
       }
     }
   };
-  // 踩死怪物
+  // 遇到怪物
   this.killMonster = function(man, monster) {
     if (this.man.isHurt) {
       this.man.anchor.setTo(0, 0.4667);
@@ -390,7 +398,7 @@ game.States.start = function() {
           this.manToSize(0);
           this.smallerSound.play();
           this.man.isHurt = false;
-          game.time.events.add(Phaser.Timer.SECOND, function(){this.man.isHurt = true}, this);
+          game.time.events.add(Phaser.Timer.SECOND * 2, function(){this.man.isHurt = true}, this);
         } else this.beingKill(man.x, man.y);
       }
       if (this.manSize === 10) this.man.anchor.setTo(0, 0);
