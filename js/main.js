@@ -128,7 +128,11 @@ game.States.start = function() {
     this.playmusic.play();
 
     // 背景建筑
-    //jiageng = game.add.image(90, 80, 'jiageng');
+    this.buildings = game.add.group();
+    this.buildings.create(200, 224 - game.cache.getImage('jiageng').height, 'jiageng');
+    this.buildings.create(700, 224 - game.cache.getImage('nanmen').height, 'nanmen');
+    this.buildings.create(1000, 224 - game.cache.getImage('jiannan').height, 'jiannan');
+    this.buildings.create(1300, 224 - game.cache.getImage('zhulou').height, 'zhulou');
 
     // 创建tilemap，指定每个tile的大小，16x16
     this.map = game.add.tilemap('map', 16, 16);
@@ -244,6 +248,9 @@ game.States.start = function() {
     game.physics.arcade.collide(this.mushroom, this.layer);
     game.physics.arcade.collide(this.monsters, this.monsters);
 
+    // 建筑物移动
+    this.buildings.x = game.camera.x/2;
+
     if (!this.win && this.man.alive) {      // 平常状态
       //************************************** 人物的控制 ************************
       // 左右走动
@@ -336,22 +343,22 @@ game.States.start = function() {
     }, this);
     //*************************************************************************
     //********************************* 蘑菇的控制 *****************************
-      if (this.mushroom.alive) {
-        if (this.mushroom.stopEvent) {      // TRUE为向左, FLASE为向右
-          this.mushroom.body.velocity.x = -70;
-        }else {
-          this.mushroom.body.velocity.x = 70;
-        }
-        if (this.mushroom.body.blocked.left || this.mushroom.body.touching.left) {  
-          this.mushroom.stopEvent = false;
-        } else if (this.mushroom.body.blocked.right || this.mushroom.body.touching.right) {
-          this.mushroom.stopEvent = true;
-        }
-        // 出边界
-        if (this.mushroom.position.x < 0 || this.mushroom.position.y > 256) {
-          this.mushroom.kill();
-        }
+    if (this.mushroom.alive) {
+      if (this.mushroom.stopEvent) {      // TRUE为向左, FLASE为向右
+        this.mushroom.body.velocity.x = -70;
+      }else {
+        this.mushroom.body.velocity.x = 70;
       }
+      if (this.mushroom.body.blocked.left || this.mushroom.body.touching.left) {  
+        this.mushroom.stopEvent = false;
+      } else if (this.mushroom.body.blocked.right || this.mushroom.body.touching.right) {
+        this.mushroom.stopEvent = true;
+      }
+      // 出边界
+      if (this.mushroom.position.x < 0 || this.mushroom.position.y > 256) {
+        this.mushroom.kill();
+      }
+    }
     //*************************************************************************
   }
 
