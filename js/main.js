@@ -58,6 +58,10 @@ game.States.preload = function() {
     game.load.spritesheet('up', 'assets/up.png', 40, 40, 2);
     game.load.tilemap('map', 'assets/tilemaps/map.csv', null, Phaser.Tilemap.CSV);
     game.load.image('tiles', 'assets/tilemaps/tiles.png');
+    game.load.image('jiageng', 'assets/jiageng.png');
+    game.load.image('zhulou', 'assets/zhulou.png');
+    game.load.image('nanmen', 'assets/nanmen.png');
+    game.load.image('jiannan', 'assets/jiannan.png');
     game.load.audio('startBGM', 'assets/sounds/startbgm.mp3');
     game.load.audio('playBGM', 'assets/sounds/playbgm.mp3');
     game.load.audio('jump', 'assets/sounds/jump.mp3');
@@ -123,6 +127,9 @@ game.States.start = function() {
     this.playmusic = game.add.sound('playBGM', 0.2, true);
     this.playmusic.play();
 
+    // 背景建筑
+    //jiageng = game.add.image(90, 80, 'jiageng');
+
     // 创建tilemap，指定每个tile的大小，16x16
     this.map = game.add.tilemap('map', 16, 16);
     this.map.addTilesetImage('tiles');
@@ -169,6 +176,8 @@ game.States.start = function() {
     this.monsters.callAll('animations.play', 'animations', 'move');
     this.killMonsterSound = game.add.sound('killMonsterSound', 0.2);
     this.killWallSound = game.add.sound('killWallSound', 0.2);
+    // 蘑菇
+    this.mushroom = {};
 
     // 人物
     this.man = game.add.sprite(50, HEIGHT - 64, 'man');
@@ -232,6 +241,7 @@ game.States.start = function() {
     this.overGold = game.physics.arcade.overlap(this.man, this.golds, this.collectGold, null, this);
     this.overMonster =  game.physics.arcade.overlap(this.man, this.monsters, this.killMonster, null, this);
     game.physics.arcade.collide(this.monsters, this.layer);
+    game.physics.arcade.collide(this.mushroom, this.layer);
     game.physics.arcade.collide(this.monsters, this.monsters);
 
     if (!this.win && this.man.alive) {      // 平常状态
@@ -325,6 +335,24 @@ game.States.start = function() {
       }
     }, this);
     //*************************************************************************
+    //********************************* 蘑菇的控制 *****************************
+      if (this.mushroom.alive) {
+        if (this.mushroom.stopEvent) {      // TRUE为向左, FLASE为向右
+          this.mushroom.body.velocity.x = -70;
+        }else {
+          this.mushroom.body.velocity.x = 70;
+        }
+        if (this.mushroom.body.blocked.left || this.mushroom.body.touching.left) {  
+          this.mushroom.stopEvent = false;
+        } else if (this.mushroom.body.blocked.right || this.mushroom.body.touching.right) {
+          this.mushroom.stopEvent = true;
+        }
+        // 出边界
+        if (this.mushroom.position.x < 0 || this.mushroom.position.y > 256) {
+          this.mushroom.kill();
+        }
+      }
+    //*************************************************************************
   }
 
   // 吃问号箱
@@ -338,6 +366,7 @@ game.States.start = function() {
         // 蘑菇出现
         this.mushroom = game.add.sprite(item.x, item.y - 16, 'mushroom');
         game.physics.arcade.enable(this.mushroom);
+        this.mushroom.body.gravity.y = 500;
         var mushroomSound = game.add.sound('mushroomSound', 0.2);
         mushroomSound.play();
       } else {
