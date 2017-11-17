@@ -118,6 +118,8 @@ game.States.start = function() {
 
   var arrowLeft = arrowRight = arrowUp = false;
   this.create = function() {
+    // 记录时间
+    this.startTime = game.time.now;
     // 设置背景色
     game.stage.backgroundColor = '#CCC';
     // 启动物理引擎
@@ -129,10 +131,12 @@ game.States.start = function() {
 
     // 背景建筑
     this.buildings = game.add.group();
-    this.buildings.create(200, 224 - game.cache.getImage('jiageng').height, 'jiageng');
-    this.buildings.create(700, 224 - game.cache.getImage('nanmen').height, 'nanmen');
-    this.buildings.create(1000, 224 - game.cache.getImage('jiannan').height, 'jiannan');
-    this.buildings.create(1300, 224 - game.cache.getImage('zhulou').height, 'zhulou');
+    this.buildings.create(200, 224, 'nanmen');
+    this.buildings.create(500, 224, 'jiageng');
+    this.buildings.create(1000, 224, 'jiannan');
+    this.buildings.create(1300, 224, 'zhulou');
+    this.buildings.callAll('anchor.setTo', 'anchor', 0, 1);
+    //this.buildings.callAll('scale.setTo', 'scale', 1.5, 1.5);
 
     // 创建tilemap，指定每个tile的大小，16x16
     this.map = game.add.tilemap('map', 16, 16);
@@ -197,13 +201,23 @@ game.States.start = function() {
     this.manDirect = true; //朝向 右：true; 左：false
     // 键盘操作
     this.cursors = game.input.keyboard.createCursorKeys();
+
     // camera
     game.camera.follow(this.man);
 
-    // 积分等文字
-    var info = game.add.text(16, 16, 'MARIO', { font: '14px Arial', fill: '#ffffff' });
+    // 积分等文字信息
+    var info = game.add.group();
     info.fixedToCamera = true;
-
+    info.add(game.add.text(60, 10, 'MARIO', { font: '12px Arial', fill: '#ffffff' }));
+    info.add(game.add.text(190, 10, 'GOLDS', { font: '12px Arial', fill: '#ffffff' }));
+    info.add(game.add.text(320, 10, 'TIME', { font: '12px Arial', fill: '#ffffff' }));
+    this.score = 0;
+    this.scoreText = info.add(game.add.text(60, 24, this.score, { font: '12px Arial', fill: '#ffffff' }));
+    this.goldNum = 0;
+    this.goldNumText = info.add(game.add.text(190, 24, this.goldNum, { font: '12px Arial', fill: '#ffffff' }));
+    this.timeNum = 300;
+    this.timeNumText = info.add(game.add.text(320, 24, this.timeNum, { font: '12px Arial', fill: '#ffffff' }));
+    info.callAll('anchor.setTo', 'anchor', 0.5, 0);
 
     // 创建虚拟按键
     var buttonleft = game.add.button(10, HEIGHT + 10, 'left', null, this, 1, 0, 1, 0);
@@ -247,6 +261,16 @@ game.States.start = function() {
     game.physics.arcade.collide(this.monsters, this.layer);
     game.physics.arcade.collide(this.mushroom, this.layer);
     game.physics.arcade.collide(this.monsters, this.monsters);
+
+    if ((!this.win) && this.man.alive) {
+      this.timeNum = 300 - Math.floor((game.time.now - this.startTime)/1000);
+    }
+    if (this.timeNum <= 0) this.beingKill(this.man.x, this.man.y);
+
+    // 文字信息
+    this.scoreText.setText(this.score);
+    this.goldNumText.setText(this.goldNum);
+    this.timeNumText.setText(this.timeNum);
 
     // 建筑物移动
     this.buildings.x = game.camera.x/2;
@@ -308,6 +332,7 @@ game.States.start = function() {
           } else {
             this.man.body.velocity.x = 0;
             this.man.frame = this.manSize+9; 
+            this.scoring();
           }
         } else {
           this.man.frame = this.manSize+8;
@@ -368,7 +393,7 @@ game.States.start = function() {
     if ((game.physics.arcade.angleBetween(man, item) < -0.78) && (game.physics.arcade.angleBetween(man, item) > -2.36)){
       if (item.position.x === 21*16 ||
           item.position.x === 78*16 ||
-          item.position.x === 109*16
+          item.position.x === 112*16
          ) {
         // 蘑菇出现
         this.mushroom = game.add.sprite(item.x, item.y - 16, 'mushroom');
@@ -382,6 +407,8 @@ game.States.start = function() {
         gold.animations.add('move', [0,1,2], 5, true);
         gold.animations.play('move');
         this.goldSoundSound.play();
+        this.goldNum++;
+        this.score += 100;
         // 金币动画
         var tween = game.add.tween(gold).to({y: gold.y - 50}, 100, Phaser.Easing.Linear.None, true);
         tween.onComplete.add(function(){gold.destroy();}, this);
@@ -393,12 +420,15 @@ game.States.start = function() {
   this.collectGold = function(man, gold) {
     gold.destroy();
     this.goldSoundSound.play();
+    this.goldNum++;
+    this.score += 100;
   };
   // 吃蘑菇
   this.eatMushroom = function(man, mushroom) {
     this.manToSize(1);
     this.mushroom.kill();
     this.biggerSound.play();
+    this.score += 500;
   };
   // 旗子降落
   this.flagFalling = function(man, item) {
@@ -415,6 +445,7 @@ game.States.start = function() {
          ){
         this.map.removeTile(item.x, item.y);
         this.killWallSound.play();
+        this.score += 20;
       }
     }
   };
@@ -423,12 +454,13 @@ game.States.start = function() {
     if (this.man.isHurt) {
       this.man.anchor.setTo(0, 0.4667);
       // 踩中怪物
-      if ((game.physics.arcade.angleBetween(man, monster) > 0.78) && (game.physics.arcade.angleBetween(man, monster) < 2.36)) {
+      if ((game.physics.arcade.angleBetween(man, monster) > 0.80) && (game.physics.arcade.angleBetween(man, monster) < 2.34)) {
         monster.destroy();
         var monsterDead = game.add.sprite(monster.x, monster.y, 'monsterDead');
          game.time.events.add(Phaser.Timer.SECOND / 2, function(){monsterDead.destroy()});
         this.man.body.velocity.y = -200;
         this.killMonsterSound.play();
+        this.score += 200;
       } 
       // 碰到怪物
       else {
@@ -436,7 +468,7 @@ game.States.start = function() {
           this.manToSize(0);
           this.smallerSound.play();
           this.man.isHurt = false;
-          game.time.events.add(Phaser.Timer.SECOND * 2, function(){this.man.isHurt = true}, this);
+          game.time.events.add(Phaser.Timer.SECOND * 1.5, function(){this.man.isHurt = true}, this);
         } else this.beingKill(man.x, man.y);
       }
       if (this.manSize === 10) this.man.anchor.setTo(0, 0);
@@ -450,7 +482,7 @@ game.States.start = function() {
     tween.onComplete.add(function(){
       var tween = game.add.tween(manDead).to({y: 300}, 1000, Phaser.Easing.Quadratic.out, true);
       tween.onComplete.add(function(){
-       game.time.events.add(Phaser.Timer.SECOND, function(){game.state.start('main');});
+       game.time.events.add(Phaser.Timer.SECOND, function(){game.state.start('start');});
       });
     }, this);
     var deadSound = game.add.sound('deadSound');
@@ -472,6 +504,16 @@ game.States.start = function() {
     this.man.animations.add('left', [this.manSize+7,this.manSize+6,this.manSize+5,this.manSize+6], 14, true);
 
   };
+  // 最后计分
+  this.scoring = function() {
+    if (this.timeNum > 0) {
+      this.timeNum--;
+      this.score += 10;
+    } else {
+
+    }
+    
+  }
 
   // this.render = function(){
   //    game.debug.body(this.man);
