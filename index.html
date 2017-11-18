@@ -45,8 +45,7 @@
     // 适配屏幕
     var mainTitle = document.getElementById('main-title');
     var copyright = document.getElementById('copyright');
-    var domHeight = window.screen.availHeight;
-    console.log((domHeight-340)/4-mainTitle.clientHeight);
+    var domHeight = window.innerHeight;
     mainTitle.style = 'margin-top: ' + Math.floor((domHeight-340)/4-mainTitle.clientHeight) + 'px;';
     copyright.style = 'margin-top: ' + Math.floor(3*(domHeight-340)/4+340-copyright.clientHeight) + 'px;';
   </script>
