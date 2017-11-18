@@ -73,6 +73,7 @@ game.States.preload = function() {
     game.load.image('zhulou', 'assets/zhulou.png');
     game.load.image('nanmen', 'assets/nanmen.png');
     game.load.image('jiannan', 'assets/jiannan.png');
+    game.load.image('qinye', 'assets/qinye.png');
     game.load.audio('startBGM', 'assets/sounds/startbgm.mp3');
     game.load.audio('playBGM', 'assets/sounds/playbgm.mp3');
     game.load.audio('jump', 'assets/sounds/jump.mp3');
@@ -145,6 +146,7 @@ game.States.start = function() {
     this.buildings.create(1000, 224, 'jiannan');
     this.buildings.create(1300, 224, 'zhulou');
     this.buildings.callAll('anchor.setTo', 'anchor', 0, 1);
+    var qinye = game.add.image(3272, 144, 'qinye');
 
     // 创建tilemap，指定每个tile的大小，16x16
     this.map = game.add.tilemap('map', 16, 16);
@@ -392,7 +394,6 @@ game.States.start = function() {
       break;
 
       case 'win':
-        console.log('ok');
         // 沿旗杆滑落
         this.man.body.velocity.x = 0;
         this.man.body.velocity.y = 0;
@@ -407,10 +408,10 @@ game.States.start = function() {
       break;
 
       case 'winAnimation':
-
+        //console.log('winAnimation');
         // 进城堡
         if (this.flag.y === 190) {    // 滑倒底后的动画
-          if (this.man.x < 3320) {    
+          if (this.man.x < 3360) {    
             this.man.body.velocity.x = 130;
             this.man.animations.play('right');   
           } else {                    // 到达指定位置执行
@@ -432,7 +433,9 @@ game.States.start = function() {
 
       case 'share':
 
-        //
+        this.man.frame = this.manSize+9;
+        game.camera.x++;
+        console.log('share');
 
       break;
 
@@ -551,7 +554,7 @@ game.States.start = function() {
   // 游戏胜利
   this.gameWin = function(man, item) {
     if (item.index === 13) {
-      if (this.man.x >= 3162) {       // 人物到达旗杆的位置
+      if (this.man.x >= 3156) {       // 人物到达旗杆的位置
         this.updateState = 'win';
       }
     }
@@ -573,9 +576,9 @@ game.States.start = function() {
 
   };
 
-  this.render = function(){
-     game.debug.body(this.man);
-  }
+  // this.render = function(){
+  //    game.debug.body(this.man);
+  // }
 };
 
 game.States.over = function() {
