@@ -6,7 +6,6 @@ var game = new Phaser.Game(WIDTH, 340, Phaser.CANVAS, 'game');
 
 game.conf = {
   position: 50,
-  //人物模型属性
   width: 14,
   height: 16,
   WIDTH: 16,
@@ -68,7 +67,6 @@ game.States.preload = function() {
     game.load.spritesheet('left', 'assets/left.png', 40, 40, 2);
     game.load.spritesheet('right', 'assets/right.png', 40, 40, 2);
     game.load.spritesheet('up', 'assets/up.png', 40, 40, 2);
-    game.load.spritesheet('prtscn', 'assets/prtscn.png', 40, 40, 2);
     game.load.tilemap('map', 'assets/tilemaps/map.csv', null, Phaser.Tilemap.CSV);
     game.load.image('tiles', 'assets/tilemaps/tiles.png');
     game.load.image('jiageng', 'assets/jiageng.png');
@@ -260,14 +258,6 @@ game.States.start = function() {
     buttonup.events.onInputOut.add(function(){arrowUp=false;});
     buttonup.events.onInputDown.add(function(){arrowUp=true;});
     buttonup.events.onInputUp.add(function(){arrowUp=false;});
-
-    var prtscn = game.add.button(WIDTH - 150, HEIGHT + 10, 'prtscn', null, this, 1, 0, 1, 0);
-    prtscn.scale.setTo(1.4, 1.4);
-    prtscn.fixedToCamera = true;
-    prtscn.events.onInputOver.add(printScreen);
-    prtscn.events.onInputOut.add(printScreen);
-    prtscn.events.onInputDown.add(printScreen);
-    prtscn.events.onInputUp.add(printScreen);
 
     this.updateState = 'play';
 
@@ -605,25 +595,3 @@ game.state.add('start', game.States.start);
 game.state.add('over', game.States.over);
 
 game.state.start('boot');
-
-// 截屏
-var prtscnBox = document.getElementById('prtscn');
-function printScreen() {
-  prtscnBox.style = '';
-  var mycanvas = document.getElementsByTagName('canvas')[0];
-  var img = new Image();
-  img.src = mycanvas.toDataURL("image/png");
-  var c = document.getElementById("output");
-  var ctx=c.getContext("2d"); 
-  img.onload = function()
-  {   
-    ctx.clearRect(0, 0, c.width, c.height); 
-    ctx.drawImage(img, 0, 0);
-    var imgOut = document.getElementById("imgout");
-    imgOut.src = c.toDataURL("image/png");
-  }
-}
-
-document.getElementById('close').onclick = function() {
-  prtscnBox.style = 'display: none;';
-};

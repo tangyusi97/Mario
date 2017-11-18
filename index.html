@@ -34,50 +34,17 @@
         width: 100%;
         height: 100%;
       }
-      #prtscn {
-        position: absolute;
-        width: 300px;
-        height: 300px;
-        top: 50%;
-        left: 50%;
-        margin-left: -150px;
-        margin-top: -107px;
-        padding: 10px;
-        overflow: hidden;
-        z-index: 999;
-      }
-      #imgout {
-        width: 100%;
-        min-height: 214px;
-        display: block;
-      }
-      #close {
-        width: 100%;
-        background: #fff;
-        border: 1px #000 solid;
-        font-size: 1.2em;
-      }
-      #output {
-        display: none;
-      }
     </style>
 </head>
 <body>
-<!--   <div class="logo">
+  <div class="logo">
     <img src="http://game.webxinxin.com/plane/assets/logo.jpg" alt="" />
   </div>
   <div id="share" class="share">
     <img class="sharepng" src="http://game.webxinxin.com/plane/assets/share.png" alt="" />
     <img class="closebtn" src="http://game.webxinxin.com/plane/assets/close.png" alt="" onclick="onCloseShare();" />
   </div>
- -->  
   <div id="game" class="game"></div>
-  <div id="prtscn" style="display: none;">
-    <img id="imgout" src="" alt="">
-    <button id="close">关闭</button>
-  </div>
-  <canvas id="output" width="360px" height="256px"></canvas>
-
   <script src="js/phaser.min.js"></script>
   <script src="js/main.js"></script>
 </body>
