@@ -5,7 +5,7 @@ var HEIGHT = 256;
 var game = new Phaser.Game(WIDTH, 340, Phaser.CANVAS, 'game');
 
 game.conf = {
-  position: 50,
+  position: 3100,
   // 人物模型参数
   width: 14,
   height: 16,
@@ -52,7 +52,7 @@ game.States.preload = function() {
     game.load.setPreloadSprite(preloadSprite);
     game.load.image('cover', 'assets/cover.jpg');
     game.load.image('bg', 'assets/bg.bmp');
-    game.load.spritesheet('startbutton', 'assets/startbutton.png', 100, 40, 2);
+    game.load.spritesheet('startbutton', 'assets/startbutton.png', 100, 35, 2);
     game.load.spritesheet('man', 'assets/man.png', 16, 32, 20);
     game.load.spritesheet('mystery', 'assets/mystery.png', 16, 16, 4);
     game.load.spritesheet('monster', 'assets/monster.png', 16, 16, 2);
@@ -216,6 +216,9 @@ game.States.start = function() {
     this.biggerSound = game.add.sound('biggerSound', game.conf.volume, false);
     this.smallerSound = game.add.sound('smallerSound', game.conf.volume, false);
 
+    this.manDead = game.add.sprite(0, 0, 'dead');     // 死亡状态
+    this.manDead.kill();
+
     // 键盘操作
     this.cursors = game.input.keyboard.createCursorKeys();
     // camera
@@ -234,6 +237,13 @@ game.States.start = function() {
     this.timeNum = 300;
     this.timeNumText = info.add(game.add.text(320, 24, this.timeNum, { font: '12px Arial', fill: '#ffffff' }));
     info.callAll('anchor.setTo', 'anchor', 0.5, 0);
+
+    // 控制器面板
+    var controller = game.add.graphics(0, 256);
+    controller.fixedToCamera = true;
+    controller.beginFill(0xcccccc);
+    controller.drawRect(0, 0, 360, 84);
+    controller.endFill();
 
     // 创建虚拟按键
     var buttonleft = game.add.button(10, HEIGHT + 10, 'left', null, this, 1, 0, 1, 0);
@@ -434,9 +444,14 @@ game.States.start = function() {
 
       case 'share':
 
-        this.man.frame = this.manSize+9;
-        game.camera.x++;
         console.log('share');
+        this.updateState = 'shareLoop';
+        
+      break;
+
+      case 'shareLoop':
+
+        this.man.frame = this.manSize+9;
 
       break;
 
@@ -457,6 +472,7 @@ game.States.start = function() {
         this.mushroom.x = item.x;
         this.mushroom.y = item.y - 16;
         this.mushroom.revive();
+        this.mushroom.stopEvent = false;
         this.mushroomSound.play();
       } else {
         // 金币冒出来
@@ -535,11 +551,13 @@ game.States.start = function() {
   // 死亡
   this.beingKill = function(x, y) {
     this.man.kill();
-    var manDead = game.add.sprite(x, y , 'dead');
+    this.manDead.x = x;
+    this.manDead.y = y;
+    this.manDead.revive();
     // 死亡的动画
-    var tween = game.add.tween(manDead).to({y: y-20}, 200, Phaser.Easing.Quadratic.out, true, 500);
+    var tween = game.add.tween(this.manDead).to({y: y-20}, 200, Phaser.Easing.Quadratic.out, true, 500);
     tween.onComplete.add(function(){
-      var tween = game.add.tween(manDead).to({y: 300}, 1000, Phaser.Easing.Quadratic.out, true);
+      var tween = game.add.tween(this.manDead).to({y: 300}, 1000, Phaser.Easing.Quadratic.out, true);
       tween.onComplete.add(function(){
        game.time.events.add(Phaser.Timer.SECOND, function(){game.state.start('start');});
       });

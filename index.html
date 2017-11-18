@@ -18,6 +18,18 @@
         width: 100%;
         height: 100%;
       }
+      #main-title {
+        position: absolute;
+        width: 100%;
+        text-align: center;
+      }
+      #copyright {
+        position: absolute;
+        width: 100%;
+        text-align: center;
+        font-size: 0.8em;
+        color: #999;
+      }
     </style>
 </head>
 <body>
@@ -25,6 +37,17 @@
     <img src="assets/logo.png" alt="" />
   </div>
   <div id="game" class="game"></div>
+  <h1 id="main-title">Supper Xiaoxia</h1>
+  <p id="copyright">Copyright ©2017 厦门大学官方微信平台</p>
   <script src="js/phaser.min.js"></script>
   <script src="js/main.js"></script>
+  <script>
+    // 适配屏幕
+    var mainTitle = document.getElementById('main-title');
+    var copyright = document.getElementById('copyright');
+    var domHeight = window.screen.availHeight;
+    console.log((domHeight-340)/4-mainTitle.clientHeight);
+    mainTitle.style = 'margin-top: ' + Math.floor((domHeight-340)/4-mainTitle.clientHeight) + 'px;';
+    copyright.style = 'margin-top: ' + Math.floor(3*(domHeight-340)/4+340-copyright.clientHeight) + 'px;';
+  </script>
 </body>
