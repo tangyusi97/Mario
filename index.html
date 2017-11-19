@@ -7,6 +7,7 @@
       body {
         margin: 0;
         padding: 0;
+        background: #305362;
       }
       .logo {
         position: absolute;
@@ -22,13 +23,14 @@
         position: absolute;
         width: 100%;
         text-align: center;
+        color: #FFF;
       }
       #copyright {
         position: absolute;
         width: 100%;
         text-align: center;
         font-size: 0.8em;
-        color: #999;
+        color: #ccc;
       }
     </style>
 </head>
@@ -46,7 +48,14 @@
     var mainTitle = document.getElementById('main-title');
     var copyright = document.getElementById('copyright');
     var domHeight = window.innerHeight;
-    mainTitle.style = 'margin-top: ' + Math.floor((domHeight-340)/4-mainTitle.clientHeight) + 'px;';
-    copyright.style = 'margin-top: ' + Math.floor(3*(domHeight-340)/4+340-copyright.clientHeight) + 'px;';
+    var canvasHeight = (340 / 360) * window.innerWidth;
+    var spaceHeight = (domHeight - canvasHeight) / 4;
+    if (spaceHeight <= 30) {
+      mainTitle.style = 'display: none;';
+      copyright.style = 'display: none;';
+    } else {
+      mainTitle.style = 'margin-top: ' + Math.floor(spaceHeight-mainTitle.clientHeight/2) + 'px;';
+      copyright.style = 'margin-top: ' + Math.floor(3*spaceHeight+canvasHeight-copyright.clientHeight/2) + 'px;';
+    }
   </script>
 </body>

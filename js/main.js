@@ -5,7 +5,7 @@ var HEIGHT = 256;
 var game = new Phaser.Game(WIDTH, 340, Phaser.CANVAS, 'game');
 
 game.conf = {
-  position: 50,
+  position: 3100,
   // 人物模型参数
   width: 14,
   height: 16,
@@ -59,6 +59,7 @@ game.States.preload = function() {
     game.load.spritesheet('grass', 'assets/grass.png', 32, 16, 3);
     game.load.spritesheet('flag', 'assets/flag.png', 16, 16, 4);
     game.load.spritesheet('gold', 'assets/gold.png', 16, 16, 3);
+    game.load.spritesheet('fireworks', 'assets/fireworks.png', 20, 16, 5);
     game.load.image('wall', 'assets/wall.bmp');
     game.load.image('monsterDead', 'assets/monster-dead.png');
     game.load.image('manDead', 'assets/man-dead.png');
@@ -201,6 +202,8 @@ game.States.start = function() {
     this.mushroom.body.gravity.y = 500;
     this.mushroomSound = game.add.sound('mushroomSound', game.conf.volume);
     this.mushroom.kill();
+    // 烟花
+    this.fireworks = game.add.group();
 
     //**************************************************************************************
 
@@ -241,7 +244,7 @@ game.States.start = function() {
     // 控制器面板
     var controller = game.add.graphics(0, 256);
     controller.fixedToCamera = true;
-    controller.beginFill(0xcccccc);
+    controller.beginFill(0x305362);
     controller.drawRect(0, 0, 360, 84);
     controller.endFill();
 
@@ -284,9 +287,6 @@ game.States.start = function() {
     // 碰撞检测
     game.physics.arcade.collide(this.man, this.mysteries, this.collectMystery, null, this); //两者不能颠倒顺序
     game.physics.arcade.collide(this.man, this.layer, this.killWall, null, this);           //两者不能颠倒顺序
-    game.physics.arcade.collide(this.monsters, this.layer);
-    game.physics.arcade.collide(this.mushroom, this.layer);
-    game.physics.arcade.collide(this.monsters, this.monsters);
 
     // 文字信息
     this.scoreText.setText(this.score);
@@ -310,7 +310,7 @@ game.States.start = function() {
         this.overMonster =  game.physics.arcade.overlap(this.man, this.monsters, this.killMonster, null, this);
 
         // 计时
-        this.timeNum = 300 - Math.floor((game.time.now - this.startTime)/1000);
+        this.timeNum = 50 - Math.floor((game.time.now - this.startTime)/1000);
         // 时间到
         if (this.timeNum < 0) {
           this.beingKill(this.man.x, this.man.y);
@@ -352,6 +352,9 @@ game.States.start = function() {
         }, this);
         //*************************************************************************
         //********************************* 怪物的控制 *****************************
+        game.physics.arcade.collide(this.monsters, this.layer);
+        game.physics.arcade.collide(this.monsters, this.monsters);
+
         this.monsters.forEach(function(monster){
           if (monster.position.x - game.camera.x <= 360) {  // 进入视野
             if (monster.stopEvent) {      // TRUE为向右, FLASE为向左
@@ -375,6 +378,7 @@ game.States.start = function() {
         }, this);
         //*************************************************************************
         //********************************* 蘑菇的控制 *****************************
+        game.physics.arcade.collide(this.mushroom, this.layer);
         if (this.mushroom.alive) {            // 蘑菇存在时执行
           if (this.mushroom.stopEvent) {      // TRUE为向左, FLASE为向右
             this.mushroom.body.velocity.x = -70;
@@ -400,7 +404,13 @@ game.States.start = function() {
 
         this.monsters.setAll('body.velocity.x', 0);
         this.monsters.setAll('body.velocity.y', 0);
-        this.monsters.setAll('body.velocity.gravity.y', 0);
+        this.monsters.setAll('body.gravity.y', 0);
+
+        if (this.mushroom.alive) {
+          this.mushroom.body.velocity.x = 0;
+          this.mushroom.body.velocity.y = 0;
+          this.mushroom.body.gravity.y = 0;
+        }
 
       break;
 
@@ -446,12 +456,22 @@ game.States.start = function() {
 
         console.log('share');
         this.updateState = 'shareLoop';
+        this.preDate = game.time.now;
 
       break;
 
       case 'shareLoop':
 
         this.man.frame = this.manSize+9;
+        if (game.time.now - this.preDate >= 400) {
+          var firex = game.rnd.integerInRange(3300, 3450);
+          var firey = game.rnd.integerInRange(50, 100);
+          var firework = this.fireworks.getFirstExists(false, true, firex, firey, 'fireworks');
+          var anim = firework.animations.add('fire', [0, 1, 2, 3, 4], 10, false);
+          firework.animations.play('fire');
+          anim.onComplete.add(function(){firework.kill();}, this);
+          this.preDate = game.time.now;
+        }
 
       break;
 
@@ -469,8 +489,7 @@ game.States.start = function() {
           item.position.x === 112*16
          ) {
         // 蘑菇出现
-        this.mushroom.x = item.x;
-        this.mushroom.y = item.y - 16;
+        this.mushroom.reset(item.x, item.y - 16);
         this.mushroom.revive();
         this.mushroom.stopEvent = false;
         this.mushroomSound.play();
