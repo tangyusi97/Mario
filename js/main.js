@@ -5,14 +5,14 @@ var HEIGHT = 256;
 var game = new Phaser.Game(WIDTH, 340, Phaser.CANVAS, 'game');
 
 game.conf = {
-  position: 50,
-  // 人物模型参数
+  position: 3100,
+  // 人物模型参数，16*32
   width: 14,
   height: 16,
   WIDTH: 16,
   HEIGHT: 28,
-  initialSize: 0,
-  volume: 0.2,
+  initialSize: 0, // 0, 10 
+  volume: 0.2,    // 0 ~ 1
   maxTime: 300
 };
 
@@ -110,8 +110,8 @@ game.States.main = function() {
   this.create = function() {
     // 封面
     var cover = game.add.tileSprite(0, 0, 360, 340, 'cover');
-    this.startbutton = game.add.button(255, 305, 'startbutton', this.onStartClick, this, 1, 1, 0);
-    this.startbutton.scale.setTo(0.8, 0.8);
+    this.startbutton = game.add.button(240, 285, 'startbutton', this.onStartClick, this, 1, 1, 0);
+    this.startbutton.scale.setTo(0.9, 0.9);
     // 背景音乐
     this.startBGM = game.add.sound('startBGM', game.conf.volume, true);
     this.startBGM.play();
@@ -424,6 +424,8 @@ game.States.start = function() {
         var winBGM = game.add.sound('winSound', game.conf.volume);
         this.playmusic.stop();
         winBGM.play();
+        // 烟花的时间
+        this.preDate = 0;
 
         this.updateState = 'winAnimation';
         
@@ -438,7 +440,9 @@ game.States.start = function() {
             this.man.animations.play('right');   
           } else {                    // 到达指定位置执行
             this.man.body.velocity.x = 0;
-            this.man.frame = this.manSize+9; 
+            this.man.frame = this.manSize+9;
+            // 烟花 
+            this.celebrate();
             // 计分
             if (this.timeNum > 0) {
               this.timeNum--;
@@ -456,8 +460,8 @@ game.States.start = function() {
       case 'share':
 
         console.log('share');
+        SCORE = this.score;
         this.updateState = 'shareLoop';
-        this.preDate = game.time.now;
 
         // 生成按钮
         document.getElementById('buttons').style = '';
@@ -468,15 +472,7 @@ game.States.start = function() {
 
         this.man.frame = this.manSize+9;
         // 烟花
-        if (game.time.now - this.preDate >= 400) {
-          var firex = game.rnd.integerInRange(3300, 3450);
-          var firey = game.rnd.integerInRange(50, 100);
-          var firework = this.fireworks.getFirstExists(false, true, firex, firey, 'fireworks');
-          var anim = firework.animations.add('fire', [0, 1, 2, 3, 4], 10, false);
-          firework.animations.play('fire');
-          anim.onComplete.add(function(){firework.kill();}, this);
-          this.preDate = game.time.now;
-        }
+        this.celebrate();
         // 分数
 
       break;
@@ -603,6 +599,22 @@ game.States.start = function() {
       }
     }
   };
+
+  // 放烟花
+  this.celebrate = function() {
+    if (game.time.now - this.preDate >= 400) {  // 设置时间间隔
+      // 随机烟花的位置
+      var firex = game.rnd.integerInRange(3300, 3450);
+      var firey = game.rnd.integerInRange(50, 100);
+
+      var firework = this.fireworks.getFirstExists(false, true, firex, firey, 'fireworks');
+      var anim = firework.animations.add('fire', [0, 1, 2, 3, 4], 8, false);
+      firework.animations.play('fire');
+      anim.onComplete.add(function(){firework.kill();}, this);
+
+      this.preDate = game.time.now;
+    }
+  }
 
   // 变大变小转换
   this.manToSize = function(size) {

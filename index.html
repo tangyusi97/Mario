@@ -3,89 +3,108 @@
 	<meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
 	<title>Supper Xiaoxia</title>
-    <style>
-      body {
-        margin: 0;
-        padding: 0;
-        background: #305362;
-      }
-      .logo {
-        position: absolute;
-        left: -1000px;
-        top: -1000px;
-      }
-      .game {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-      }
-      #main-title {
-        position: absolute;
-        width: 100%;
-        text-align: center;
-        color: #FFF;
-      }
-      #footer {
-        position: absolute;
-        width: 100%;
-      }
-      #footer > p {
-        text-align: center;
-        font-size: 0.8em;
-        color: #ccc;
-      }
-      #buttons {
-        width: 100%;
-        text-align: center;
-      }
-      #buttons > button{
-        width: 40%;
-        display: inline-block;
-        border: 1px #fff solid;
-        border-radius: 3px;
-        color: #fff;
-        background: none;
-        padding: 4px;
-        margin: 0 10px 15px;
-      }
-      #mask {
-        background-color: rgba(0,0,0,0.6);
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        z-index: 998;
-      }
-      #mask > img {
-        width: 340px;
-        position: absolute;
-        top: 50%;
-        right: 50%;
-        margin-top: -170px;
-        margin-right: -170px;
-        box-shadow: 5px 5px 10px #000;
-      }
-    </style>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #305362;
+    }
+    .logo {
+      position: absolute;
+      left: -1000px;
+      top: -1000px;
+    }
+    .game {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+    #main-title {
+      position: absolute;
+      width: 100%;
+      text-align: center;
+      color: #FFF;
+    }
+    #footer {
+      position: absolute;
+      width: 100%;
+    }
+    #footer > p {
+      text-align: center;
+      font-size: 0.8em;
+      color: #ccc;
+    }
+    #buttons {
+      width: 100%;
+      text-align: center;
+    }
+    #buttons > button{
+      width: 40%;
+      display: inline-block;
+      border: 1px #fff solid;
+      border-radius: 3px;
+      color: #fff;
+      background: none;
+      padding: 4px;
+      margin: 0 10px 15px;
+    }
+    #mask {
+      background-color: rgba(0,0,0,0.6);
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 998;
+    }
+    #mask img {
+      width: 340px;
+      position: absolute;
+      top: 50%;
+      right: 50%;
+      margin-top: -170px;
+      margin-right: -170px;
+      box-shadow: 5px 5px 10px #000;
+    }
+    #share-info {
+      width: 100%;
+      position: absolute;
+      background-color: #fff;
+      text-align: center;
+      font-size: 1.2em;
+      padding: 10px;
+      top: 0;
+      color: #305362;
+    }
+  </style>
 </head>
 <body>
   <div class="logo">
     <img src="assets/logo.png" alt="" />
   </div>
   <div id="game" class="game"></div>
-  <h1 id="main-title">Supper Xiaoxia</h1>
-  <div id="footer">
+
+  <h1 id="main-title">
+    <img src="assets/qrcode.jpg" width="50px" style="vertical-align: -5px;">
+    <span style="display: inline-block; width: 100px; color: #fff; font-size: 12px; font-weight: normal;text-align: left;">Supper Xiaoxia<br>扫码发现更多<br>喜欢记得点赞哦</span>
+  </h1>
+  
+  <div id="footer" style="margin-top: 340px;">
     <div id="buttons" style="visibility: hidden;">
-      <button onclick="javascript:game.state.start('start');">再玩一次</button>
-      <button onclick="javascript:shareImg()">生成图片</button>
+      <button onclick="javascript:document.getElementById('buttons').style.visibility='hidden';game.state.start('start');">再玩一次</button>
+      <button onclick="javascript:shareImg()">我的荣誉</button>
     </div>
     <p>Copyright ©2017 厦门大学官方微信平台</p>
   </div>
+
   <!-- 用于生成分享图 -->
-  <canvas id="output"></canvas>
+  <canvas id="output" width="640px" height="640px" style="display: none;"></canvas>
+
   <div id="mask" style="display: none;" onclick="javascript: this.style.display = 'none'">
-    <img src="assets/share/jiannan.jpg" alt="" width="100%">
+    <div id="share-info">记得保存图片分享给大家哦~</div>
+    <img id="share-img" src="assets/share/jiannan.jpg" alt="" width="100%">
   </div>
+
   <script src="js/phaser.min.js"></script>
   <script src="js/main.js"></script>
   <script>
@@ -105,34 +124,71 @@
 
     // 生成分享图
     function shareImg() {
-      // var img = new Image();
-      // img.src = src;
 
-      // var c = document.getElementById("output");
-      // var ctx = c.getContext("2d");
+      var imgIndex = game.rnd.integerInRange(0, 4);
 
-      // img.onload = function()
-      // {   
-      //     ctx.clearRect(0, 0, c.width, c.height); 
-      //     ctx.drawImage(img, 0, 0);
+      var img = new Image();
+      img.src = imgPara[imgIndex].src;
 
-      //     ctx.fillStyle = "#fff";
-      //     ctx.font = "58px Arial";
-      //     ctx.textAlign = align;
-      //     ctx.fillText(name, x1, y1);
-      //     ctx.fillText("@"+name2, x2, y2);
+      var c = document.getElementById("output");
+      var ctx = c.getContext("2d");
 
-      //     //生成图片
-      //     setTimeout(function(){
-      //         load.setAttribute("style", "display:none;");
-      //         saveImageInfo();
-      //         storyImg.setAttribute("style", "display:block;");
-      //         //显示
-      //         setTimeout("storyImg.setAttribute('style', ' transform: translateY(2em); opacity: 1;');", 200);
-      //     }, 800);
-      // }
+      img.onload = function()
+      {   
+        ctx.clearRect(0, 0, c.width, c.height); 
+        ctx.drawImage(img, 0, 0);
+
+        ctx.fillStyle = "#fff";
+        ctx.font = "42px Arial";
+        ctx.textAlign = "start";
+        ctx.fillText(SCORE, imgPara[imgIndex].x1, imgPara[imgIndex].y1);
+        ctx.fillText(99, imgPara[imgIndex].x2, imgPara[imgIndex].y2);
+
+        //生成图片
+        var mycanvas = document.getElementById("output");  
+        var imageUrl = mycanvas.toDataURL("image/png");  
+        document.getElementById("share-img").setAttribute("src", imageUrl);
+
+      }
       document.getElementById('mask').style = '';
       
     }
+    var SCORE = 0;
+    var imgPara = [
+    {
+      src: 'assets/share/qunxian.jpg',
+      x1: 280,
+      y1: 460,
+      x2: 276,
+      y2: 528
+    },
+    {
+      src: 'assets/share/jiannan.jpg',
+      x1: 280,
+      y1: 230,
+      x2: 280,
+      y2: 300
+    },
+    {
+      src: 'assets/share/nanmen.jpg',
+      x1: 275,
+      y1: 465,
+      x2: 275,
+      y2: 530
+    },
+    {
+      src: 'assets/share/qinye.jpg',
+      x1: 275,
+      y1: 465,
+      x2: 275,
+      y2: 530
+    },
+    {
+      src: 'assets/share/jiageng.jpg',
+      x1: 275,
+      y1: 465,
+      x2: 275,
+      y2: 530
+    }];
   </script>
 </body>
