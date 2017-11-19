@@ -5,14 +5,15 @@ var HEIGHT = 256;
 var game = new Phaser.Game(WIDTH, 340, Phaser.CANVAS, 'game');
 
 game.conf = {
-  position: 3100,
+  position: 50,
   // 人物模型参数
   width: 14,
   height: 16,
   WIDTH: 16,
   HEIGHT: 28,
   initialSize: 0,
-  volume: 0.2
+  volume: 0.2,
+  maxTime: 300
 };
 
 game.States = {};
@@ -108,9 +109,9 @@ game.States.main = function() {
 
   this.create = function() {
     // 封面
-    var cover = game.add.tileSprite(0, 0, WIDTH, HEIGHT, 'cover');
-    cover.scale.setTo(1, 1.35);
-    this.startbutton = game.add.button(70, 200, 'startbutton', this.onStartClick, this, 1, 1, 0);
+    var cover = game.add.tileSprite(0, 0, 360, 340, 'cover');
+    this.startbutton = game.add.button(255, 305, 'startbutton', this.onStartClick, this, 1, 1, 0);
+    this.startbutton.scale.setTo(0.8, 0.8);
     // 背景音乐
     this.startBGM = game.add.sound('startBGM', game.conf.volume, true);
     this.startBGM.play();
@@ -230,14 +231,14 @@ game.States.start = function() {
     // 积分等文字信息
     var info = game.add.group();
     info.fixedToCamera = true;
-    info.add(game.add.text(60, 10, 'MARIO', { font: '12px Arial', fill: '#ffffff' }));
+    info.add(game.add.text(60, 10, 'XIAOXIA', { font: '12px Arial', fill: '#ffffff' }));
     info.add(game.add.text(190, 10, 'GOLDS', { font: '12px Arial', fill: '#ffffff' }));
     info.add(game.add.text(320, 10, 'TIME', { font: '12px Arial', fill: '#ffffff' }));
     this.score = 0;
     this.scoreText = info.add(game.add.text(60, 24, this.score, { font: '12px Arial', fill: '#ffffff' }));
     this.goldNum = 0;
     this.goldNumText = info.add(game.add.text(190, 24, this.goldNum, { font: '12px Arial', fill: '#ffffff' }));
-    this.timeNum = 300;
+    this.timeNum = game.conf.maxTime;
     this.timeNumText = info.add(game.add.text(320, 24, this.timeNum, { font: '12px Arial', fill: '#ffffff' }));
     info.callAll('anchor.setTo', 'anchor', 0.5, 0);
 
@@ -310,7 +311,7 @@ game.States.start = function() {
         this.overMonster =  game.physics.arcade.overlap(this.man, this.monsters, this.killMonster, null, this);
 
         // 计时
-        this.timeNum = 50 - Math.floor((game.time.now - this.startTime)/1000);
+        this.timeNum = game.conf.maxTime - Math.floor((game.time.now - this.startTime)/1000);
         // 时间到
         if (this.timeNum < 0) {
           this.beingKill(this.man.x, this.man.y);
@@ -458,11 +459,15 @@ game.States.start = function() {
         this.updateState = 'shareLoop';
         this.preDate = game.time.now;
 
+        // 生成按钮
+        document.getElementById('buttons').style = '';
+
       break;
 
       case 'shareLoop':
 
         this.man.frame = this.manSize+9;
+        // 烟花
         if (game.time.now - this.preDate >= 400) {
           var firex = game.rnd.integerInRange(3300, 3450);
           var firey = game.rnd.integerInRange(50, 100);
@@ -472,6 +477,7 @@ game.States.start = function() {
           anim.onComplete.add(function(){firework.kill();}, this);
           this.preDate = game.time.now;
         }
+        // 分数
 
       break;
 

@@ -25,12 +25,46 @@
         text-align: center;
         color: #FFF;
       }
-      #copyright {
+      #footer {
         position: absolute;
         width: 100%;
+      }
+      #footer > p {
         text-align: center;
         font-size: 0.8em;
         color: #ccc;
+      }
+      #buttons {
+        width: 100%;
+        text-align: center;
+      }
+      #buttons > button{
+        width: 40%;
+        display: inline-block;
+        border: 1px #fff solid;
+        border-radius: 3px;
+        color: #fff;
+        background: none;
+        padding: 4px;
+        margin: 0 10px 15px;
+      }
+      #mask {
+        background-color: rgba(0,0,0,0.6);
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 998;
+      }
+      #mask > img {
+        width: 340px;
+        position: absolute;
+        top: 50%;
+        right: 50%;
+        margin-top: -170px;
+        margin-right: -170px;
+        box-shadow: 5px 5px 10px #000;
       }
     </style>
 </head>
@@ -40,22 +74,65 @@
   </div>
   <div id="game" class="game"></div>
   <h1 id="main-title">Supper Xiaoxia</h1>
-  <p id="copyright">Copyright ©2017 厦门大学官方微信平台</p>
+  <div id="footer">
+    <div id="buttons" style="visibility: hidden;">
+      <button onclick="javascript:game.state.start('start');">再玩一次</button>
+      <button onclick="javascript:shareImg()">生成图片</button>
+    </div>
+    <p>Copyright ©2017 厦门大学官方微信平台</p>
+  </div>
+  <!-- 用于生成分享图 -->
+  <canvas id="output"></canvas>
+  <div id="mask" style="display: none;" onclick="javascript: this.style.display = 'none'">
+    <img src="assets/share/jiannan.jpg" alt="" width="100%">
+  </div>
   <script src="js/phaser.min.js"></script>
   <script src="js/main.js"></script>
   <script>
     // 适配屏幕
     var mainTitle = document.getElementById('main-title');
-    var copyright = document.getElementById('copyright');
+    var footer = document.getElementById('footer');
     var domHeight = window.innerHeight;
     var canvasHeight = (340 / 360) * window.innerWidth;
     var spaceHeight = (domHeight - canvasHeight) / 4;
     if (spaceHeight <= 30) {
-      mainTitle.style = 'display: none;';
-      copyright.style = 'display: none;';
+      mainTitle.style.display =  'none';
+      footer.style.display =  'none';
     } else {
       mainTitle.style = 'margin-top: ' + Math.floor(spaceHeight-mainTitle.clientHeight/2) + 'px;';
-      copyright.style = 'margin-top: ' + Math.floor(3*spaceHeight+canvasHeight-copyright.clientHeight/2) + 'px;';
+      footer.style = 'margin-top: ' + Math.floor(3*spaceHeight+canvasHeight-footer.clientHeight/2) + 'px;';
+    }
+
+    // 生成分享图
+    function shareImg() {
+      // var img = new Image();
+      // img.src = src;
+
+      // var c = document.getElementById("output");
+      // var ctx = c.getContext("2d");
+
+      // img.onload = function()
+      // {   
+      //     ctx.clearRect(0, 0, c.width, c.height); 
+      //     ctx.drawImage(img, 0, 0);
+
+      //     ctx.fillStyle = "#fff";
+      //     ctx.font = "58px Arial";
+      //     ctx.textAlign = align;
+      //     ctx.fillText(name, x1, y1);
+      //     ctx.fillText("@"+name2, x2, y2);
+
+      //     //生成图片
+      //     setTimeout(function(){
+      //         load.setAttribute("style", "display:none;");
+      //         saveImageInfo();
+      //         storyImg.setAttribute("style", "display:block;");
+      //         //显示
+      //         setTimeout("storyImg.setAttribute('style', ' transform: translateY(2em); opacity: 1;');", 200);
+      //     }, 800);
+      // }
+      document.getElementById('mask').style = '';
+      
     }
   </script>
 </body>
