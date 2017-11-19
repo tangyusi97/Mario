@@ -58,12 +58,12 @@
       z-index: 998;
     }
     #mask img {
-      width: 340px;
+      width: 95%;
       position: absolute;
       top: 50%;
-      right: 50%;
-      margin-top: -170px;
-      margin-right: -170px;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      -webkit-transform: translate(-50%, -50%);
       box-shadow: 5px 5px 10px #000;
     }
     #share-info {
@@ -103,7 +103,7 @@
   <canvas id="output" width="640px" height="640px" style="display: none;"></canvas>
 
   <div id="mask" style="display: none;" onclick="javascript: this.style.display = 'none'">
-    <div id="share-info">记得保存图片分享给大家哦~</div>
+    <div id="share-info">长按图片保存或分享给大家~</div>
     <img id="share-img" src="assets/share/jiannan.jpg" alt="" width="100%">
   </div>
 
@@ -130,6 +130,7 @@
       var imgIndex = game.rnd.integerInRange(0, 4);
       var overrun = function() {
         // SCORE记录了分数
+        return 0;
       }
 
       var img = new Image();
@@ -147,7 +148,7 @@
         ctx.font = "42px Arial";
         ctx.textAlign = "start";
         ctx.fillText(SCORE, imgPara[imgIndex].x1, imgPara[imgIndex].y1);
-        ctx.fillText(overrun, imgPara[imgIndex].x2, imgPara[imgIndex].y2);
+        ctx.fillText(overrun(), imgPara[imgIndex].x2, imgPara[imgIndex].y2);
 
         //生成图片
         var mycanvas = document.getElementById("output");  
