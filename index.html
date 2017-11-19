@@ -49,7 +49,7 @@
       margin: 0 10px 15px;
     }
     #mask {
-      background-color: rgba(0,0,0,0.6);
+      background-color: rgba(0,0,0,0.8);
       position: absolute;
       top: 0;
       right: 0;
@@ -149,8 +149,8 @@
         var imageUrl = mycanvas.toDataURL("image/png");  
         document.getElementById("share-img").setAttribute("src", imageUrl);
 
+        document.getElementById('mask').style = '';
       }
-      document.getElementById('mask').style = '';
       
     }
     var SCORE = 0;

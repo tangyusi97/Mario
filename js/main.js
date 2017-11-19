@@ -5,7 +5,7 @@ var HEIGHT = 256;
 var game = new Phaser.Game(WIDTH, 340, Phaser.CANVAS, 'game');
 
 game.conf = {
-  position: 3100,
+  position: 50,
   // 人物模型参数，16*32
   width: 14,
   height: 16,
