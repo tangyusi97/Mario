@@ -258,7 +258,7 @@ game.States.start = function() {
     buttonleft.events.onInputDown.add(function(){arrowLeft=true;});
     buttonleft.events.onInputUp.add(function(){arrowLeft=false;});
 
-    var buttonright = game.add.button(90, HEIGHT + 10, 'right', null, this, 1, 0, 1, 0);
+    var buttonright = game.add.button(80, HEIGHT + 10, 'right', null, this, 1, 0, 1, 0);
     buttonright.scale.setTo(1.4, 1.4);
     buttonright.fixedToCamera = true;
     buttonright.events.onInputOver.add(function(){arrowRight=true;});

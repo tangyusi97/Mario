@@ -9,7 +9,7 @@
       padding: 0;
       background: #305362;
     }
-    .logo {
+    .catch {
       position: absolute;
       left: -1000px;
       top: -1000px;
@@ -79,9 +79,11 @@
   </style>
 </head>
 <body>
-  <div class="logo">
+  <div class="catch">
     <img src="assets/logo.png" alt="" />
+    <p>和小夏宝宝一起吃金币打怪兽吧，看看你能带着多少分通关，又能超过多少人呢...</p>
   </div>
+
   <div id="game" class="game"></div>
 
   <h1 id="main-title">
@@ -126,6 +128,9 @@
     function shareImg() {
 
       var imgIndex = game.rnd.integerInRange(0, 4);
+      var overrun = function() {
+        // SCORE记录了分数
+      }
 
       var img = new Image();
       img.src = imgPara[imgIndex].src;
@@ -142,7 +147,7 @@
         ctx.font = "42px Arial";
         ctx.textAlign = "start";
         ctx.fillText(SCORE, imgPara[imgIndex].x1, imgPara[imgIndex].y1);
-        ctx.fillText(99, imgPara[imgIndex].x2, imgPara[imgIndex].y2);
+        ctx.fillText(overrun, imgPara[imgIndex].x2, imgPara[imgIndex].y2);
 
         //生成图片
         var mycanvas = document.getElementById("output");  
