@@ -253,24 +253,24 @@ game.States.start = function() {
     var buttonleft = game.add.button(10, HEIGHT + 10, 'left', null, this, 1, 0, 1, 0);
     buttonleft.scale.setTo(1.4, 1.4);
     buttonleft.fixedToCamera = true;
-    buttonleft.events.onInputOver.add(function(){arrowLeft=true;});
-    buttonleft.events.onInputOut.add(function(){arrowLeft=false;});
+    // buttonleft.events.onInputOver.add(function(){arrowLeft=true;});
+    // buttonleft.events.onInputOut.add(function(){arrowLeft=false;});
     buttonleft.events.onInputDown.add(function(){arrowLeft=true;});
     buttonleft.events.onInputUp.add(function(){arrowLeft=false;});
 
     var buttonright = game.add.button(80, HEIGHT + 10, 'right', null, this, 1, 0, 1, 0);
     buttonright.scale.setTo(1.4, 1.4);
     buttonright.fixedToCamera = true;
-    buttonright.events.onInputOver.add(function(){arrowRight=true;});
-    buttonright.events.onInputOut.add(function(){arrowRight=false;});
+    // buttonright.events.onInputOver.add(function(){arrowRight=true;});
+    // buttonright.events.onInputOut.add(function(){arrowRight=false;});
     buttonright.events.onInputDown.add(function(){arrowRight=true;});
     buttonright.events.onInputUp.add(function(){arrowRight=false;});
 
     var buttonup = game.add.button(WIDTH - 70, HEIGHT + 10, 'up', null, this, 1, 0, 1, 0);
     buttonup.scale.setTo(1.4, 1.4);
     buttonup.fixedToCamera = true;
-    buttonup.events.onInputOver.add(function(){arrowUp=true;});
-    buttonup.events.onInputOut.add(function(){arrowUp=false;});
+    // buttonup.events.onInputOver.add(function(){arrowUp=true;});
+    // buttonup.events.onInputOut.add(function(){arrowUp=false;});
     buttonup.events.onInputDown.add(function(){arrowUp=true;});
     buttonup.events.onInputUp.add(function(){arrowUp=false;});
 
