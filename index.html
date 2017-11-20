@@ -132,8 +132,13 @@
 
       var imgIndex = game.rnd.integerInRange(0, 4);
       var overrun = function() {
-        // SCORE记录了分数
-        return 0;
+        var score_list = new Array(3200, 4300, 4940, 5040, 5160, 5230, 5270, 5420, 5430, 6530, 6540, 6740, 7460, 7610, 8350, 8370, 8440, 8900, 8910, 9800, 10070, 10290, 10520, 11160, 11980);
+        for(var i = (score_list.length - 1); i >= 0; i--) {
+          if(SCORE > score_list[i]) {
+            break;
+          }
+        }
+        return (99 - score_list.length + 1 + i);
       }
 
       var img = new Image();
