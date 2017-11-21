@@ -112,6 +112,7 @@
 
   <script src="js/phaser.min.js"></script>
   <script src="js/main.js"></script>
+  <script src="js/shake.js"></script>
   <script>
     // 适配屏幕
     var mainTitle = document.getElementById('main-title');
@@ -126,6 +127,14 @@
       mainTitle.style = 'margin-top: ' + Math.floor(spaceHeight-mainTitle.clientHeight/2) + 'px;';
       footer.style = 'margin-top: ' + Math.floor(3*spaceHeight+canvasHeight-footer.clientHeight/2) + 'px;';
     }
+
+    // shake
+    var myShakeEvent = new Shake({
+      threshold: 15, // optional shake strength threshold
+      timeout: 1000 // optional, determines the frequency of event generation
+    });
+    myShakeEvent.start();
+    window.addEventListener('shake', ()=>{alert('To my best Fat Huang, and also fans of Xiaoxia. Thank you for your support!')}, false);
 
     // 生成分享图
     function shareImg() {
