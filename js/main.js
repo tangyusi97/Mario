@@ -72,11 +72,16 @@ game.States.preload = function() {
     game.load.spritesheet('up', 'assets/up.png', 40, 40, 2);
     game.load.tilemap('map', 'assets/tilemaps/map.csv', null, Phaser.Tilemap.CSV);
     game.load.image('tiles', 'assets/tilemaps/tiles.png');
+    game.load.image('qunxian', 'assets/qunxian.png');
     game.load.image('jiageng', 'assets/jiageng.png');
-    game.load.image('zhulou', 'assets/zhulou.png');
     game.load.image('nanmen', 'assets/nanmen.png');
     game.load.image('jiannan', 'assets/jiannan.png');
     game.load.image('qinye', 'assets/qinye.png');
+    game.load.image('jiagengShare', 'assets/share/jiageng.jpg');
+    game.load.image('qunxianShare', 'assets/share/qunxian.jpg');
+    game.load.image('nanmenShare', 'assets/share/nanmen.jpg');
+    game.load.image('jiannanShare', 'assets/share/jiannan.jpg');
+    game.load.image('qinyeShare', 'assets/share/qinye.jpg');
     game.load.audio('startBGM', 'assets/sounds/startbgm.mp3');
     game.load.audio('playBGM', 'assets/sounds/playbgm.mp3');
     game.load.audio('jump', 'assets/sounds/jump.mp3');
@@ -145,9 +150,9 @@ game.States.start = function() {
     // 背景建筑
     this.buildings = game.add.group();
     this.buildings.create(200, 224, 'nanmen');
-    this.buildings.create(500, 224, 'jiageng');
+    this.buildings.create(500, 224, 'qunxian');
     this.buildings.create(1000, 224, 'jiannan');
-    this.buildings.create(1300, 224, 'zhulou');
+    this.buildings.create(1300, 224, 'jiageng');
     this.buildings.callAll('anchor.setTo', 'anchor', 0, 1);
     var qinye = game.add.image(3272, 144, 'qinye');
 
